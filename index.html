@@ -137,23 +137,34 @@
 
         // មុខងារផ្ញើដោយ Automated (SendData)
         function checkout() {
-            if (cart.length === 0) return alert("កន្ត្រកទទេ!");
+    if (cart.length === 0) return alert("កន្ត្រកទំនិញនៅទំនេរ!");
 
-            const name = document.getElementById('cust-name').value;
-            
-            // រៀបចំទិន្នន័យជា Object ដើម្បីផ្ញើទៅ Bot
-            const orderData = {
-                customer_name: name,
-                items: cart.map(i => ({ name: i.name, qty: i.qty, subtotal: (i.price * i.qty).toFixed(2) })),
-                total: cart.reduce((s, i) => s + (i.price * i.qty), 0).toFixed(2)
-            };
+    const name = document.getElementById('cust-name').value;
+    const myTelegramUser = "roththa2"; // Username របស់អ្នក
 
-            // ប្រើមុខងារ SDK ដើម្បីផ្ញើទិន្នន័យទៅ Bot (Automated)
-            tg.sendData(JSON.stringify(orderData));
-            
-            // បិទ Mini App បន្ទាប់ពីផ្ញើរួច
-            tg.close();
-        }
+    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `👤 *អតិថិជន:* ${name}\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    
+    let total = 0;
+    cart.forEach((item, index) => {
+        const subTotal = item.price * item.qty;
+        total += subTotal;
+        message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+    });
+
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
+
+    // បង្កើត Link ដើម្បីបើក Chat ទៅកាន់ @roththa2
+    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+    
+    // បើក Telegram Chat
+    window.open(telegramUrl, '_blank');
+}
+
     </script>
 </body>
 </html>
