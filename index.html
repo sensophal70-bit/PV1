@@ -32,38 +32,33 @@
     };
 
     // ៣. កែសម្រួលមុខងារ Checkout ឱ្យកាន់តែប្រសើរ
-    function checkout() {
-        const name = document.getElementById('cust-name').value.trim();
-        const phone = document.getElementById('cust-phone').value.trim();
+function checkout() {
+    if (cart.length === 0) return alert("កន្ត្រកទំនិញនៅទំនេរ!");
 
-        if (cart.length === 0) return alert("សូមរើសផលិតផលសិន!");
-        if (!name || !phone) return alert("សូមបំពេញឈ្មោះ និងលេខទូរស័ព្ទ!");
+    const name = document.getElementById('cust-name').value;
+    const myTelegramUser = "roththa2"; // Username របស់អ្នក
 
-        const myTelegramUser = "roththa2"; 
-        
-        let message = "🏗️ *ការកុម្ម៉ង់ពី Telegram Mini App*\n";
-        message += "━━━━━━━━━━━━━━━━━━\n";
-        message += `👤 *អតិថិជន:* ${name}\n`;
-        message += `📞 *លេខទូរស័ព្ទ:* ${phone}\n`;
-        // បន្ថែមព័ត៌មាន ID បើមាន
-        if(tg.initDataUnsafe?.user?.id) {
-            message += `🆔 *Telegram ID:* ${tg.initDataUnsafe.user.id}\n`;
-        }
-        message += "━━━━━━━━━━━━━━━━━━\n";
-        message += "📦 *បញ្ជីទំនិញ:*\n";
-        
-        let total = 0;
-        cart.forEach((item, index) => {
-            const subTotal = item.price * item.qty;
-            total += subTotal;
-            message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
-        });
+    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `👤 *អតិថិជន:* ${name}\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    
+    let total = 0;
+    cart.forEach((item, index) => {
+        const subTotal = item.price * item.qty;
+        total += subTotal;
+        message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+    });
 
-        message += "━━━━━━━━━━━━━━━━━━\n";
-        message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
-        message += "━━━━━━━━━━━━━━━━━━\n";
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
 
-        const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
-        window.open(telegramUrl, '_blank');
-    }
+    // បង្កើត Link ដើម្បីបើក Chat ទៅកាន់ @roththa2
+    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+    
+    // បើក Telegram Chat
+    window.open(telegramUrl, '_blank');
+}
+
 </script>
