@@ -197,5 +197,75 @@
         // ចាប់ផ្តើមដំណើរការ
         renderProducts(products);
     </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<script>
+    // ១. ចាប់ផ្តើមទាញយកទិន្នន័យពី Telegram
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // ពង្រីកអេក្រង់ឱ្យធំ
+
+    // ២. មុខងារទាញព័ត៌មានមកបំពេញក្នុង Input អូតូ
+    function autoFillTelegramInfo() {
+        const user = tg.initDataUnsafe?.user;
+
+        if (user) {
+            // ទាញឈ្មោះ (នាមខ្លួន + នាមត្រកូល)
+            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+            if (fullName) {
+                document.getElementById('cust-name').value = fullName;
+            }
+
+            // សម្គាល់៖ Telegram មិនអនុញ្ញាតឱ្យទាញ "លេខទូរស័ព្ទ" ដោយស្វ័យប្រវត្តិភ្លាមៗទេ 
+            // ដើម្បីការពារឯកជនភាព លុះត្រាតែអ្នកប្រើចុចប៊ូតុង "Share Contact"។
+            // ប៉ុន្តែយើងអាចដាក់ Username ជាបណ្តោះអាសន្នបាន។
+            if (user.username) {
+                document.getElementById('cust-phone').placeholder = "បញ្ចូលលេខទូរស័ព្ទ (Username: @" + user.username + ")";
+            }
+        }
+    }
+
+    // ហៅមុខងារនេះឱ្យដើរនៅពេល Page Load រួចរាល់
+    window.onload = function() {
+        renderProducts(products); // បង្ហាញផលិតផល
+        autoFillTelegramInfo();   // បំពេញឈ្មោះអូតូ
+    };
+
+    // ៣. កែសម្រួលមុខងារ Checkout ឱ្យកាន់តែប្រសើរ
+    function checkout() {
+        const name = document.getElementById('cust-name').value.trim();
+        const phone = document.getElementById('cust-phone').value.trim();
+
+        if (cart.length === 0) return alert("សូមរើសផលិតផលសិន!");
+        if (!name || !phone) return alert("សូមបំពេញឈ្មោះ និងលេខទូរស័ព្ទ!");
+
+        const myTelegramUser = "roththa2"; 
+        
+        let message = "🏗️ *ការកុម្ម៉ង់ពី Telegram Mini App*\n";
+        message += "━━━━━━━━━━━━━━━━━━\n";
+        message += `👤 *អតិថិជន:* ${name}\n`;
+        message += `📞 *លេខទូរស័ព្ទ:* ${phone}\n`;
+        // បន្ថែមព័ត៌មាន ID បើមាន
+        if(tg.initDataUnsafe?.user?.id) {
+            message += `🆔 *Telegram ID:* ${tg.initDataUnsafe.user.id}\n`;
+        }
+        message += "━━━━━━━━━━━━━━━━━━\n";
+        message += "📦 *បញ្ជីទំនិញ:*\n";
+        
+        let total = 0;
+        cart.forEach((item, index) => {
+            const subTotal = item.price * item.qty;
+            total += subTotal;
+            message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+        });
+
+        message += "━━━━━━━━━━━━━━━━━━\n";
+        message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+        message += "━━━━━━━━━━━━━━━━━━\n";
+
+        const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+        window.open(telegramUrl, '_blank');
+    }
+</script>
+
 </body>
 </html>
