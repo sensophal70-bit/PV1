@@ -3,107 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Construction - Official Mini App</title>
+    <title>Roththa Construction - Automated Order</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f9fafb; -webkit-user-select: none; }
-        .cart-sidebar { transition: transform 0.3s ease-in-out; }
+        body { font-family: 'Hanuman', serif; background-color: #f3f4f6; -webkit-user-select: none; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100">
 
     <nav class="bg-blue-700 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-building text-xl text-yellow-400"></i>
-            <h1 class="font-bold text-lg tracking-tight">Roththa Construction</h1>
-        </div>
-        <div class="relative cursor-pointer p-2" onclick="toggleCart()">
+        <h1 class="font-bold text-lg leading-none">Roththa Construction</h1>
+        <div class="relative cursor-pointer p-1" onclick="toggleCart()">
             <i class="fas fa-shopping-cart text-2xl"></i>
-            <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full px-1.5 font-bold border-2 border-blue-700">0</span>
+            <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 font-bold border-2 border-blue-700">0</span>
         </div>
     </nav>
 
-    <div class="p-4 bg-white sticky top-16 z-40 shadow-sm">
-        <div class="relative max-w-md mx-auto">
-            <input type="text" id="search-input" onkeyup="searchProduct()" 
-                class="w-full p-3 pl-10 rounded-2xl border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                placeholder="ស្វែងរកសម្ភារៈសំណង់...">
-            <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
-        </div>
+    <div class="p-4 sticky top-16 bg-white z-40 border-b">
+        <input type="text" id="search-input" onkeyup="searchProduct()" 
+            class="w-full p-3 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-blue-500 outline-none" 
+            placeholder="ស្វែងរកសម្ភារៈសំណង់...">
     </div>
 
-    <div id="product-list" class="grid grid-cols-2 gap-4 p-4 mb-24">
+    <div id="product-list" class="grid grid-cols-2 gap-4 p-4 mb-24 text-center">
         </div>
 
-    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full bg-white shadow-2xl transform translate-x-full cart-sidebar z-[60] flex flex-col">
-        <div class="p-5 bg-blue-700 text-white flex justify-between items-center shadow-md">
-            <span class="font-bold text-lg"><i class="fas fa-shopping-basket mr-2"></i> កន្ត្រកទំនិញ</span>
-            <button onclick="toggleCart()" class="text-3xl p-2 outline-none">&times;</button>
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+        <div class="p-4 bg-blue-700 text-white flex justify-between items-center">
+            <span class="font-bold uppercase tracking-wider">កន្ត្រកទំនិញ</span>
+            <button onclick="toggleCart()" class="text-3xl p-2">&times;</button>
         </div>
         
-        <div id="cart-items" class="flex-grow overflow-y-auto p-5 space-y-4 bg-gray-50">
-            <p class="text-center text-gray-400 mt-20 italic">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>
+        <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-3 bg-gray-50 text-sm">
+            <p class="text-center text-gray-400 mt-20">មិនទាន់មានទំនិញ</p>
         </div>
 
-        <div class="p-6 border-t bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <div class="p-5 border-t bg-white shadow-inner">
             <div class="mb-4">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">អតិថិជន (Telegram Name)</label>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ឈ្មោះអតិថិជន (Auto)</label>
                 <input type="text" id="cust-name" readonly 
-                    class="w-full mt-1 p-3 bg-blue-50 border border-blue-100 rounded-xl font-bold text-blue-800 outline-none">
+                    class="w-full mt-1 p-3 bg-blue-50 border border-blue-100 rounded-xl font-bold text-blue-700 outline-none">
             </div>
             
-            <div class="flex justify-between items-center font-bold text-xl mb-6 px-1">
-                <span class="text-gray-500">សរុប:</span>
+            <div class="flex justify-between items-center font-bold text-xl mb-6">
+                <span class="text-gray-500">សរុបរួម:</span>
                 <span id="cart-total" class="text-red-600 font-black">$0.00</span>
             </div>
 
-            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all flex justify-center items-center">
-                <i class="fab fa-telegram-plane mr-3 text-2xl"></i> ផ្ញើការកុម្ម៉ង់ទៅ Telegram
+            <button id="btn-checkout" onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all flex justify-center items-center">
+                <i class="fas fa-check-circle mr-2 text-2xl"></i> បញ្ជាក់ការកុម្ម៉ង់
             </button>
         </div>
     </div>
 
     <script>
-        // ៣. ចាប់ផ្តើម Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ៤. ទិន្នន័យផលិតផល
         const products = [
             { id: 1, name: "ស៊ីម៉ងត៍ K-Cement", price: 5.50, img: "https://via.placeholder.com/200?text=K-Cement" },
             { id: 2, name: "ដែកសរសៃ ១២លី", price: 0.85, img: "https://via.placeholder.com/200?text=Steel" },
             { id: 3, name: "ការ៉ូបាត 60x60", price: 12.00, img: "https://via.placeholder.com/200?text=Tiles" },
-            { id: 4, name: "ថ្នាំលាប Nippon", price: 45.00, img: "https://via.placeholder.com/200?text=Paint" },
-            { id: 5, name: "ឥដ្ឋតាន់ (១០០០ដុំ)", price: 65.00, img: "https://via.placeholder.com/200?text=Bricks" }
+            { id: 4, name: "ថ្នាំលាប Nippon", price: 45.00, img: "https://via.placeholder.com/200?text=Paint" }
         ];
 
         let cart = [];
 
-        // ៥. បំពេញឈ្មោះអូតូ និងបង្ហាញផលិតផល
         window.onload = () => {
             const user = tg.initDataUnsafe?.user;
-            const nameInput = document.getElementById('cust-name');
-            if (user) {
-                nameInput.value = (user.first_name + " " + (user.last_name || "")).trim();
-            } else {
-                nameInput.value = "ភ្ញៀវទូទៅ";
-            }
+            document.getElementById('cust-name').value = user ? (user.first_name + " " + (user.last_name || "")).trim() : "ភ្ញៀវទូទៅ";
             renderProducts(products);
         };
 
         function renderProducts(items) {
             const list = document.getElementById('product-list');
             list.innerHTML = items.map(p => `
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-50 flex flex-col transition hover:shadow-md">
-                    <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-3 shadow-sm">
-                    <h3 class="font-bold text-sm text-gray-800 h-10 overflow-hidden leading-snug">${p.name}</h3>
-                    <div class="flex justify-between items-center mt-3">
-                        <span class="text-red-600 font-bold">$${p.price.toFixed(2)}</span>
-                        <button onclick="addToCart(${p.id})" class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:bg-blue-800 transition">
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                    <img src="${p.img}" class="w-full h-24 object-cover rounded-xl mb-2">
+                    <h3 class="font-bold text-xs h-8 overflow-hidden">${p.name}</h3>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-red-500 font-bold text-sm">$${p.price.toFixed(2)}</span>
+                        <button onclick="addToCart(${p.id})" class="bg-blue-600 text-white p-2 rounded-lg text-xs shadow-md">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -121,7 +105,7 @@
             const exist = cart.find(item => item.id === id);
             exist ? exist.qty++ : cart.push({ ...product, qty: 1 });
             updateCartUI();
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); 
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
         function removeFromCart(id) {
@@ -134,7 +118,7 @@
             document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
             
             if (cart.length === 0) {
-                list.innerHTML = '<p class="text-center text-gray-400 mt-20 italic">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>';
+                list.innerHTML = '<p class="text-center text-gray-400 mt-20 italic">មិនទាន់មានទំនិញ</p>';
                 document.getElementById('cart-total').innerText = "$0.00";
                 return;
             }
@@ -144,12 +128,11 @@
                 const sub = item.price * item.qty;
                 total += sub;
                 return `
-                    <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-                        <div>
-                            <p class="font-bold text-sm text-gray-800">${item.name}</p>
-                            <p class="text-xs text-blue-600 font-bold">$${item.price.toFixed(2)} x ${item.qty} = $${sub.toFixed(2)}</p>
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="font-bold text-xs">
+                            ${item.name}<br><span class="text-blue-500">$${item.price.toFixed(2)} x ${item.qty}</span>
                         </div>
-                        <button onclick="removeFromCart(${item.id})" class="text-red-400 p-2 text-2xl">&times;</button>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-400 p-2 text-xl">&times;</button>
                     </div>
                 `;
             }).join('');
@@ -160,17 +143,21 @@
             document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
         }
 
-        // ៦. មុខងារផ្ញើការកុម្ម៉ង់ (បច្ចេកទេសបង្ខំឱ្យបើក Chat Roththa2)
-        function checkout() {
-            if (cart.length === 0) {
-                alert("សូមរើសផលិតផលសិន!");
-                return;
-            }
+        // ៧. មុខងារផ្ញើការកុម្ម៉ង់ស្វ័យប្រវត្តិ (BOT API)
+        async function checkout() {
+            if (cart.length === 0) return alert("កន្ត្រកទំនេរ!");
 
+            const btn = document.getElementById('btn-checkout');
             const name = document.getElementById('cust-name').value;
-            const myTelegramUser = "roththa2"; // ប្រាកដថាដក @ ចេញ
+            
+            // ព័ត៌មាន Bot របស់អ្នក (ជោគជ័យ ១០០%)
+            const botToken = "8761931144:AAHUOWQv8lSTKh0R_18GYxKE-kv6OJHdozc";
+            const adminChatId = "7453536903";
 
-            let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងផ្ញើ...';
+
+            let message = "🏗️ *ការកុម្ម៉ង់ថ្មី (ស្វ័យប្រវត្តិ)*\n";
             message += "━━━━━━━━━━━━━━━━━━\n";
             message += `👤 *អតិថិជន:* ${name}\n`;
             message += "━━━━━━━━━━━━━━━━━━\n";
@@ -181,27 +168,39 @@
                 total += subTotal;
                 message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
             });
-
             message += "━━━━━━━━━━━━━━━━━━\n";
             message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
             message += "━━━━━━━━━━━━━━━━━━\n";
             message += "⏰ _ផ្ញើចេញពី Roththa Mini App_";
 
-            // បង្កើត Link ផ្លូវការ (Format: https://t.me/username?text=message)
-            const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const params = {
+                chat_id: adminChatId,
+                text: message,
+                parse_mode: "Markdown"
+            };
 
-            // ឆែកមើល SDK និងបង្ខំឱ្យបើក Chat ថ្មី
             try {
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-                    // វិធីនេះគឺដើរ ១០០% សម្រាប់ Telegram Mini App លើទូរស័ព្ទ
-                    window.Telegram.WebApp.openTelegramLink(telegramUrl);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+
+                if (response.ok) {
+                    alert("✅ រួចរាល់! ការកុម្ម៉ង់ត្រូវបានបញ្ជូនទៅអ្នកលក់។");
+                    cart = [];
+                    updateCartUI();
+                    tg.close(); // បិទ App អូតូ
                 } else {
-                    // បើបើកតាម Browser កុំព្យូទ័រ
-                    window.location.href = telegramUrl;
+                    alert("❌ មានបញ្ហា! សូមប្រាកដថាអ្នកបានចុច Start លើ Bot របស់អ្នក។");
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> បញ្ជាក់ការកុម្ម៉ង់';
                 }
-            } catch (e) {
-                // បើមានបញ្ហា បាញ់តាម Link ធម្មតា
-                window.open(telegramUrl, '_blank');
+            } catch (error) {
+                alert("❌ បញ្ហាអ៊ីនធឺណិត! សូមព្យាយាមម្តងទៀត។");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> បញ្ជាក់ការកុម្ម៉ង់';
             }
         }
     </script>
