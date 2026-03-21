@@ -160,38 +160,42 @@
 
         // មុខងារផ្ញើទៅ Telegram (ជម្រើសទី ១ - Automated Redirect)
         function checkout() {
-            if (cart.length === 0) return alert("សូមរើសផលិតផលសិន!");
+    if (cart.length === 0) {
+        alert("សូមរើសផលិតផលសិន!");
+        return;
+    }
 
-            const name = document.getElementById('cust-name').value;
-            const myTelegramUser = "roththa2"; 
+    const name = document.getElementById('cust-name').value;
+    const myTelegramUser = "roththa2"; // ប្រាកដថាឈ្មោះនេះត្រឹមត្រូវ
 
-            let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
-            message += "━━━━━━━━━━━━━━━━━━\n";
-            message += `👤 *អតិថិជន:* ${name}\n`;
-            message += "━━━━━━━━━━━━━━━━━━\n";
-            
-            let total = 0;
-            cart.forEach((item, index) => {
-                const subTotal = item.price * item.qty;
-                total += subTotal;
-                message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
-            });
+    // រៀបចំសារ
+    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `👤 *អតិថិជន:* ${name}\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    
+    let total = 0;
+    cart.forEach((item, index) => {
+        const subTotal = item.price * item.qty;
+        total += subTotal;
+        message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+    });
 
-            message += "━━━━━━━━━━━━━━━━━━\n";
-            message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
-            message += "━━━━━━━━━━━━━━━━━━\n";
-            message += "⏰ _ផ្ញើចេញពី Telegram Mini App_";
+    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n";
 
-            // បង្កើត Link
-            const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+    // បង្កើត Link សម្រាប់ផ្ញើ
+    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
 
-            // ប្រើ SDK ដើម្បីបើក Link ក្នុង Telegram (ធានាថាដើរ ១០០%)
-            if (tg.openTelegramLink) {
-                tg.openTelegramLink(telegramUrl);
-            } else {
-                window.open(telegramUrl, '_blank');
-            }
-        }
+    // ប្រើ Telegram SDK ដើម្បីបើក Link (នេះជាចំណុចដែលធ្វើឱ្យវាដើរ)
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(telegramUrl);
+    } else {
+        window.open(telegramUrl, '_blank');
+    }
+}
+
     </script>
 </body>
 </html>
