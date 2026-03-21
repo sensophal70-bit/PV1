@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ហាងសំណង់អនឡាញ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Freehand&family=Hanuman:wght@300;400;700&display=swap');
+        body { font-family: 'Hanuman', serif; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <nav class="bg-blue-800 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">🏠 ហាងសំណង់យើង</h1>
+            <div class="relative">
+                <button onclick="toggleCart()" class="text-2xl">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-xs rounded-full px-1.5">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="p-4 container mx-auto">
+        <div class="relative">
+            <input type="text" id="search-input" onkeyup="searchProduct()" 
+                class="w-full p-3 pl-10 rounded-lg border-none shadow-md focus:ring-2 focus:ring-blue-500" 
+                placeholder="ស្វែងរកសម្ភារៈសំណង់ (ស៊ីម៉ងត៍, ដែក, ការ៉ូ...)">
+            <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4">
+        <div id="product-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            </div>
+    </div>
+
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] p-5">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h2 class="text-lg font-bold">កន្ត្រកទិញទំនិញ</h2>
+            <button onclick="toggleCart()" class="text-gray-500 text-2xl">&times;</button>
+        </div>
+        <div id="cart-items" class="mt-4 space-y-4 overflow-y-auto h-[70vh]">
+            <p class="text-center text-gray-400">មិនទាន់មានទំនិញ</p>
+        </div>
+        <div class="absolute bottom-0 left-0 w-full p-5 bg-gray-50 border-t">
+            <div class="flex justify-between font-bold mb-4">
+                <span>សរុប:</span>
+                <span id="cart-total" class="text-red-600">$0.00</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">
+                ផ្ញើការកុម្ម៉ង់តាម Telegram
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ទិន្នន័យគំរូ (អាចទាញពី Firebase មកជំនួសវិញ)
+        const products = [
+
+            { id: 1, name: "ស៊ីម៉ងត៍ K-Cement", price: 5.50, img: "https://via.placeholder.com/200x150?text=Cement" },
+            { id: 2, name: "ដែកសរសៃ ១២លី", price: 0.85, img: "https://via.placeholder.com/200x150?text=Steel" },
+            { id: 3, name: "ការ៉ូបាត 60x60", price: 12.00, img: "https://via.placeholder.com/200x150?text=Tile" },
+            { id: 4, name: "ថ្នាំលាបផ្ទះ Nippon", price: 45.00, img: "https://via.placeholder.com/200x150?text=Paint" },
+
+        ];
+
+        let cart = [];
+
+        // បង្ហាញផលិតផល
+        function renderProducts(items) {
+            const list = document.getElementById('product-list');
+            list.innerHTML = items.map(p => `
+                <div class="bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition">
+                    <img src="${p.img}" class="w-full h-32 object-cover rounded-md mb-2">
+                    <h3 class="font-bold text-sm h-10 overflow-hidden text-gray-800">${p.name}</h3>
+                    <p class="text-red-600 font-bold">$${p.price.toFixed(2)}</p>
+                    <button onclick="addToCart(${p.id})" class="mt-2 w-full bg-blue-100 text-blue-700 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition">
+                        + ដាក់ចូលកន្ត្រក
+                    </button>
+                </div>
+            `).join('');
+        }
+        // មុខងារ Search
+        function searchProduct() {
+            const term = document.getElementById('search-input').value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+            renderProducts(filtered);
+        }
+        // មុខងារ Add to Cart
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const exist = cart.find(item => item.id === id);
+            
+            if (exist) {
+                exist.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartUI();
+        }
+        function updateCartUI() {
+            const cartItems = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const cartTotal = document.getElementById('cart-total');
+            
+            cartCount.innerText = cart.reduce((sum, item) => sum + item.qty, 0);
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-center text-gray-400">មិនទាន់មានទំនិញ</p>';
+                cartTotal.innerText = "$0.00";
+                return;
+            }
+            let total = 0;
+            cartItems.innerHTML = cart.map(item => {
+                total += item.price * item.qty;
+                return `
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <div class="flex items-center">
+                            <img src="${item.img}" class="w-12 h-12 rounded object-cover mr-3">
+                            <div>
+                                <p class="text-sm font-bold">${item.name}</p>
+                                <p class="text-xs text-gray-500">$${item.price} x ${item.qty}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-500"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }).join('');
+            cartTotal.innerText = "$" + total.toFixed(2);
+        }
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+       function checkout() {
+    // ១. ពិនិត្យមើលកន្ត្រកទំនិញ
+    if (cart.length === 0) {
+        alert("សូមមេត្តារើសផលិតផលដាក់ក្នុងកន្ត្រកជាមុនសិន!");
+        return;
+    }
+    // ២. ដាក់ Username របស់អ្នក (ដក @ ចេញ)
+    const myTelegramUser = "roththa2"; 
+    // ៣. រៀបចំសារដែលត្រូវផ្ញើ
+    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+    message += "------------------------------\n"; 
+    let total = 0;
+    cart.forEach((item, index) => {
+        const subTotal = item.price * item.qty;
+        total += subTotal;
+        message += `${index + 1}. ${item.name} (x${item.qty}) = $${subTotal.toFixed(2)}\n`;
+    });
+    message += "------------------------------\n";
+    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+    message += `👤 ពីអតិថិជន: [សូមបំពេញឈ្មោះនៅទីនេះ]\n`;
+    message += `📍 ទីតាំងដឹកជញ្ជូន: [សូមបំពេញទីតាំង]\n`;
+    // ៤. បង្កើត Link និងបើក Telegram
+    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`; 
+    // បើកផ្ទាំងថ្មីទៅកាន់ Chat របស់អ្នក
+    window.open(telegramUrl, '_blank');
+}
+        // ចាប់ផ្តើម
+        renderProducts(products);
+    </script>
+</body>
+</html>
