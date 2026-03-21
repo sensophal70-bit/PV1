@@ -1,65 +1,197 @@
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Store - Roththa</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        body { font-family: 'Hanuman', serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="bg-gray-100">
 
-<script>
-    // ១. ចាប់ផ្តើមទាញយកទិន្នន័យពី Telegram
-    const tg = window.Telegram.WebApp;
-    tg.expand(); // ពង្រីកអេក្រង់ឱ្យធំ
+    <nav class="bg-blue-600 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
+        <h1 class="font-bold text-lg"><i class="fas fa-tools mr-2"></i> Roththa Construction</h1>
+        <div class="relative cursor-pointer" onclick="toggleCart()">
+            <i class="fas fa-shopping-basket text-2xl"></i>
+            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1.5 font-bold">0</span>
+        </div>
+    </nav>
 
-    // ២. មុខងារទាញព័ត៌មានមកបំពេញក្នុង Input អូតូ
-    function autoFillTelegramInfo() {
-        const user = tg.initDataUnsafe?.user;
+    <div class="p-4 bg-white shadow-sm">
+        <div class="relative max-w-md mx-auto">
+            <input type="text" id="search-input" onkeyup="searchProduct()" 
+                class="w-full p-3 pl-10 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-400" 
+                placeholder="ស្វែងរកសម្ភារៈសំណង់...">
+            <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+        </div>
+    </div>
 
-        if (user) {
-            // ទាញឈ្មោះ (នាមខ្លួន + នាមត្រកូល)
-            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-            if (fullName) {
-                document.getElementById('cust-name').value = fullName;
+    <div id="product-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 mb-20">
+        </div>
+
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full md:w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+        <div class="p-5 bg-blue-600 text-white flex justify-between items-center">
+            <h2 class="font-bold uppercase tracking-wide">កន្ត្រកទំនិញ</h2>
+            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+        </div>
+        
+        <div id="cart-items" class="flex-grow overflow-y-auto p-5 space-y-4">
+            <p class="text-center text-gray-400 mt-10">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>
+        </div>
+
+        <div class="p-5 border-t bg-gray-50">
+            <div class="mb-4">
+                <label class="text-xs font-bold text-gray-500 uppercase">ឈ្មោះអតិថិជន (Telegram Name)</label>
+                <input type="text" id="cust-name" readonly 
+                    class="w-full p-3 bg-gray-200 border rounded-lg font-bold text-blue-700 outline-none">
+            </div>
+            
+            <div class="flex justify-between font-bold text-xl mb-6 text-gray-800">
+                <span>សរុបរួម:</span>
+                <span id="cart-total" class="text-red-600">$0.00</span>
+            </div>
+
+            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition flex justify-center items-center">
+                <i class="fab fa-telegram-plane mr-2 text-2xl"></i> ផ្ញើការកុម្ម៉ង់ទៅ Telegram
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // ១. បញ្ជីផលិតផល
+        const products = [
+            { id: 1, name: "ស៊ីម៉ងត៍ K-Cement", price: 5.50, img: "https://via.placeholder.com/200x150?text=Cement" },
+            { id: 2, name: "ដែកសរសៃ ១២លី", price: 0.85, img: "https://via.placeholder.com/200x150?text=Steel" },
+            { id: 3, name: "ការ៉ូបាត 60x60", price: 12.00, img: "https://via.placeholder.com/200x150?text=Tiles" },
+            { id: 4, name: "ថ្នាំលាបផ្ទះ Nippon", price: 45.00, img: "https://via.placeholder.com/200x150?text=Paint" },
+            { id: 5, name: "ឥដ្ឋតាន់ (១០០០ដុំ)", price: 65.00, img: "https://via.placeholder.com/200x150?text=Bricks" }
+        ];
+
+        let cart = [];
+
+        // ២. បំពេញឈ្មោះអូតូពី Telegram
+        window.onload = () => {
+            const user = tg.initDataUnsafe?.user;
+            const nameField = document.getElementById('cust-name');
+            if (user) {
+                nameField.value = `${user.first_name} ${user.last_name || ''}`.trim();
+            } else {
+                nameField.value = "ភ្ញៀវទូទៅ (មិនស្គាល់ ID)";
+            }
+            renderProducts(products);
+        };
+
+        function renderProducts(items) {
+            const list = document.getElementById('product-list');
+            list.innerHTML = items.map(p => `
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                    <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-3">
+                    <h3 class="font-bold text-sm text-gray-800 h-10 overflow-hidden">${p.name}</h3>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-red-600 font-bold">$${p.price.toFixed(2)}</span>
+                        <button onclick="addToCart(${p.id})" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 shadow">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchProduct() {
+            const term = document.getElementById('search-input').value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+            renderProducts(filtered);
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const exist = cart.find(item => item.id === id);
+            if (exist) {
+                exist.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items');
+            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
+            
+            if (cart.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-400 mt-10">មិនទាន់មានទំនិញ</p>';
+                document.getElementById('cart-total').innerText = "$0.00";
+                return;
             }
 
-            // សម្គាល់៖ Telegram មិនអនុញ្ញាតឱ្យទាញ "លេខទូរស័ព្ទ" ដោយស្វ័យប្រវត្តិភ្លាមៗទេ 
-            // ដើម្បីការពារឯកជនភាព លុះត្រាតែអ្នកប្រើចុចប៊ូតុង "Share Contact"។
-            // ប៉ុន្តែយើងអាចដាក់ Username ជាបណ្តោះអាសន្នបាន។
-            if (user.username) {
-                document.getElementById('cust-phone').placeholder = "បញ្ចូលលេខទូរស័ព្ទ (Username: @" + user.username + ")";
+            let total = 0;
+            list.innerHTML = cart.map(item => {
+                const sub = item.price * item.qty;
+                total += sub;
+                return `
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="text-xs font-bold text-gray-700">
+                            ${item.name}<br>
+                            <span class="text-blue-500">$${item.price} x ${item.qty} = $${sub.toFixed(2)}</span>
+                        </div>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600 text-xl">&times;</button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('cart-total').innerText = "$" + total.toFixed(2);
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+        }
+
+        // មុខងារផ្ញើទៅ Telegram (ជម្រើសទី ១ - Automated Redirect)
+        function checkout() {
+            if (cart.length === 0) return alert("សូមរើសផលិតផលសិន!");
+
+            const name = document.getElementById('cust-name').value;
+            const myTelegramUser = "roththa2"; 
+
+            let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += `👤 *អតិថិជន:* ${name}\n`;
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            
+            let total = 0;
+            cart.forEach((item, index) => {
+                const subTotal = item.price * item.qty;
+                total += subTotal;
+                message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+            });
+
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += "⏰ _ផ្ញើចេញពី Telegram Mini App_";
+
+            // បង្កើត Link
+            const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+
+            // ប្រើ SDK ដើម្បីបើក Link ក្នុង Telegram (ធានាថាដើរ ១០០%)
+            if (tg.openTelegramLink) {
+                tg.openTelegramLink(telegramUrl);
+            } else {
+                window.open(telegramUrl, '_blank');
             }
         }
-    }
-
-    // ហៅមុខងារនេះឱ្យដើរនៅពេល Page Load រួចរាល់
-    window.onload = function() {
-        renderProducts(products); // បង្ហាញផលិតផល
-        autoFillTelegramInfo();   // បំពេញឈ្មោះអូតូ
-    };
-
-    // ៣. កែសម្រួលមុខងារ Checkout ឱ្យកាន់តែប្រសើរ
-async function checkout() {
-    if (cart.length === 0) return alert("កន្ត្រកទំនិញនៅទំនេរ!");
-
-    const name = document.getElementById('cust-name').value;
-    const botToken = "លេខ_TOKEN_របស់_BOT_អ្នក"; 
-    const adminChatId = "លេខ_CHAT_ID_របស់អ្នក"; 
-
-    let message = "🔔 *មានការកុម្ម៉ង់ថ្មី (ស្វ័យប្រវត្តិ)*\n";
-    message += `👤 អតិថិជន: ${name}\n`;
-    cart.forEach(i => {
-        message += `- ${i.name} (x${i.qty})\n`;
-    });
-    const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-    message += `💰 សរុប: $${total.toFixed(2)}`;
-
-    // ផ្ញើទៅកាន់ Bot តាមរយៈ API (Automated)
-    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${adminChatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-
-    try {
-        await fetch(url);
-        alert("ការកុម្ម៉ង់ត្រូវបានបញ្ជូនដោយជោគជ័យ!");
-        cart = []; // លាងកន្ត្រក
-        updateCartUI();
-        tg.close(); // បិទ App
-    } catch (error) {
-        alert("មានបញ្ហាក្នុងការផ្ញើ! សូមព្យាយាមម្តងទៀត។");
-    }
-}
-
-
-</script>
+    </script>
+</body>
+</html>
