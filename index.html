@@ -32,33 +32,34 @@
     };
 
     // ៣. កែសម្រួលមុខងារ Checkout ឱ្យកាន់តែប្រសើរ
-function checkout() {
+async function checkout() {
     if (cart.length === 0) return alert("កន្ត្រកទំនិញនៅទំនេរ!");
 
     const name = document.getElementById('cust-name').value;
-    const myTelegramUser = "roththa2"; // Username របស់អ្នក
+    const botToken = "លេខ_TOKEN_របស់_BOT_អ្នក"; 
+    const adminChatId = "លេខ_CHAT_ID_របស់អ្នក"; 
 
-    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    message += `👤 *អតិថិជន:* ${name}\n`;
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    
-    let total = 0;
-    cart.forEach((item, index) => {
-        const subTotal = item.price * item.qty;
-        total += subTotal;
-        message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+    let message = "🔔 *មានការកុម្ម៉ង់ថ្មី (ស្វ័យប្រវត្តិ)*\n";
+    message += `👤 អតិថិជន: ${name}\n`;
+    cart.forEach(i => {
+        message += `- ${i.name} (x${i.qty})\n`;
     });
+    const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    message += `💰 សរុប: $${total.toFixed(2)}`;
 
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
-    message += "━━━━━━━━━━━━━━━━━━\n";
+    // ផ្ញើទៅកាន់ Bot តាមរយៈ API (Automated)
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${adminChatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
 
-    // បង្កើត Link ដើម្បីបើក Chat ទៅកាន់ @roththa2
-    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
-    
-    // បើក Telegram Chat
-    window.open(telegramUrl, '_blank');
+    try {
+        await fetch(url);
+        alert("ការកុម្ម៉ង់ត្រូវបានបញ្ជូនដោយជោគជ័យ!");
+        cart = []; // លាងកន្ត្រក
+        updateCartUI();
+        tg.close(); // បិទ App
+    } catch (error) {
+        alert("មានបញ្ហាក្នុងការផ្ញើ! សូមព្យាយាមម្តងទៀត។");
+    }
 }
+
 
 </script>
