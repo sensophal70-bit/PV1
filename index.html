@@ -3,88 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Store - Roththa</title>
+    <title>Roththa Construction - Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f3f4f6; }
+        body { font-family: 'Hanuman', serif; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50 text-gray-800">
 
-    <nav class="bg-blue-600 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold text-lg"><i class="fas fa-tools mr-2"></i> Roththa Construction</h1>
-        <div class="relative cursor-pointer" onclick="toggleCart()">
-            <i class="fas fa-shopping-basket text-2xl"></i>
-            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1.5 font-bold">0</span>
+    <nav class="bg-blue-600 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
+        <h1 class="font-bold text-lg">Roththa Construction</h1>
+        <div class="relative cursor-pointer p-2" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart text-xl"></i>
+            <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full px-1.5 font-bold">0</span>
         </div>
     </nav>
 
-    <div class="p-4 bg-white shadow-sm">
-        <div class="relative max-w-md mx-auto">
+    <div class="p-4">
+        <div class="relative">
             <input type="text" id="search-input" onkeyup="searchProduct()" 
-                class="w-full p-3 pl-10 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-400" 
+                class="w-full p-3 pl-10 rounded-xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white" 
                 placeholder="ស្វែងរកសម្ភារៈសំណង់...">
             <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
         </div>
     </div>
 
-    <div id="product-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 mb-20">
+    <div id="product-list" class="grid grid-cols-2 gap-4 p-4 mb-24">
         </div>
 
-    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full md:w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
-        <div class="p-5 bg-blue-600 text-white flex justify-between items-center">
-            <h2 class="font-bold uppercase tracking-wide">កន្ត្រកទំនិញ</h2>
-            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+        <div class="p-4 bg-blue-600 text-white flex justify-between items-center shadow">
+            <span class="font-bold font-lg"><i class="fas fa-shopping-basket mr-2"></i> កន្ត្រកទំនិញ</span>
+            <button onclick="toggleCart()" class="text-3xl p-2">&times;</button>
         </div>
         
-        <div id="cart-items" class="flex-grow overflow-y-auto p-5 space-y-4">
-            <p class="text-center text-gray-400 mt-10">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>
+        <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-3 bg-gray-50">
+            <p class="text-center text-gray-400 mt-20">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>
         </div>
 
-        <div class="p-5 border-t bg-gray-50">
+        <div class="p-5 border-t bg-white">
             <div class="mb-4">
-                <label class="text-xs font-bold text-gray-500 uppercase">ឈ្មោះអតិថិជន (Telegram Name)</label>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">ឈ្មោះអតិថិជន (ស្វ័យប្រវត្តិ)</label>
                 <input type="text" id="cust-name" readonly 
-                    class="w-full p-3 bg-gray-200 border rounded-lg font-bold text-blue-700 outline-none">
+                    class="w-full mt-1 p-3 bg-blue-50 border border-blue-100 rounded-xl font-bold text-blue-700 outline-none">
             </div>
             
-            <div class="flex justify-between font-bold text-xl mb-6 text-gray-800">
-                <span>សរុបរួម:</span>
+            <div class="flex justify-between items-center font-bold text-xl mb-6">
+                <span class="text-gray-600">សរុប:</span>
                 <span id="cart-total" class="text-red-600">$0.00</span>
             </div>
 
-            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition flex justify-center items-center">
+            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all flex justify-center items-center">
                 <i class="fab fa-telegram-plane mr-2 text-2xl"></i> ផ្ញើការកុម្ម៉ង់ទៅ Telegram
             </button>
         </div>
     </div>
 
     <script>
+        // ២. ចាប់ផ្តើមទាញទិន្នន័យពី Telegram SDK
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.ready(); // ប្រាប់ Telegram ថា App រួចរាល់
+        tg.expand(); // ពង្រីកឱ្យពេញអេក្រង់
 
-        // ១. បញ្ជីផលិតផល
         const products = [
-            { id: 1, name: "ស៊ីម៉ងត៍ K-Cement", price: 5.50, img: "https://via.placeholder.com/200x150?text=Cement" },
-            { id: 2, name: "ដែកសរសៃ ១២លី", price: 0.85, img: "https://via.placeholder.com/200x150?text=Steel" },
-            { id: 3, name: "ការ៉ូបាត 60x60", price: 12.00, img: "https://via.placeholder.com/200x150?text=Tiles" },
-            { id: 4, name: "ថ្នាំលាបផ្ទះ Nippon", price: 45.00, img: "https://via.placeholder.com/200x150?text=Paint" },
-            { id: 5, name: "ឥដ្ឋតាន់ (១០០០ដុំ)", price: 65.00, img: "https://via.placeholder.com/200x150?text=Bricks" }
+            { id: 1, name: "ស៊ីម៉ងត៍ K-Cement", price: 5.50, img: "https://via.placeholder.com/200?text=K-Cement" },
+            { id: 2, name: "ដែកសរសៃ ១២លី", price: 0.85, img: "https://via.placeholder.com/200?text=Steel" },
+            { id: 3, name: "ការ៉ូបាត 60x60", price: 12.00, img: "https://via.placeholder.com/200?text=Tiles" },
+            { id: 4, name: "ថ្នាំលាប Nippon", price: 45.00, img: "https://via.placeholder.com/200?text=Paint" }
         ];
 
         let cart = [];
 
-        // ២. បំពេញឈ្មោះអូតូពី Telegram
         window.onload = () => {
+            // ទាញឈ្មោះអូតូពី Telegram Profile
             const user = tg.initDataUnsafe?.user;
-            const nameField = document.getElementById('cust-name');
+            const nameInput = document.getElementById('cust-name');
             if (user) {
-                nameField.value = `${user.first_name} ${user.last_name || ''}`.trim();
+                nameInput.value = (user.first_name + " " + (user.last_name || "")).trim();
             } else {
-                nameField.value = "ភ្ញៀវទូទៅ (មិនស្គាល់ ID)";
+                nameInput.value = "ភ្ញៀវទូទៅ (មិនទាន់បើកក្នុង Telegram)";
             }
             renderProducts(products);
         };
@@ -92,13 +92,13 @@
         function renderProducts(items) {
             const list = document.getElementById('product-list');
             list.innerHTML = items.map(p => `
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                    <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-3">
-                    <h3 class="font-bold text-sm text-gray-800 h-10 overflow-hidden">${p.name}</h3>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                    <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-3 shadow-inner">
+                    <h3 class="font-bold text-sm text-gray-800 h-10 overflow-hidden leading-tight">${p.name}</h3>
                     <div class="flex justify-between items-center mt-3">
-                        <span class="text-red-600 font-bold">$${p.price.toFixed(2)}</span>
-                        <button onclick="addToCart(${p.id})" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 shadow">
-                            <i class="fas fa-cart-plus"></i>
+                        <span class="text-red-500 font-bold">$${p.price.toFixed(2)}</span>
+                        <button onclick="addToCart(${p.id})" class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:bg-blue-800">
+                            <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -107,23 +107,19 @@
 
         function searchProduct() {
             const term = document.getElementById('search-input').value.toLowerCase();
-            const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-            renderProducts(filtered);
+            renderProducts(products.filter(p => p.name.toLowerCase().includes(term)));
         }
 
         function addToCart(id) {
             const product = products.find(p => p.id === id);
             const exist = cart.find(item => item.id === id);
-            if (exist) {
-                exist.qty += 1;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
+            exist ? exist.qty++ : cart.push({ ...product, qty: 1 });
             updateCartUI();
+            tg.HapticFeedback.impactOccurred('medium'); // ញ័រទូរស័ព្ទតិចៗពេលចុច
         }
 
         function removeFromCart(id) {
-            cart = cart.filter(item => item.id !== id);
+            cart = cart.filter(i => i.id !== id);
             updateCartUI();
         }
 
@@ -132,7 +128,7 @@
             document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
             
             if (cart.length === 0) {
-                list.innerHTML = '<p class="text-center text-gray-400 mt-10">មិនទាន់មានទំនិញ</p>';
+                list.innerHTML = '<p class="text-center text-gray-400 mt-20">មិនទាន់មានទំនិញក្នុងកន្ត្រក</p>';
                 document.getElementById('cart-total').innerText = "$0.00";
                 return;
             }
@@ -142,12 +138,12 @@
                 const sub = item.price * item.qty;
                 total += sub;
                 return `
-                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                        <div class="text-xs font-bold text-gray-700">
-                            ${item.name}<br>
-                            <span class="text-blue-500">$${item.price} x ${item.qty} = $${sub.toFixed(2)}</span>
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                        <div>
+                            <p class="font-bold text-sm">${item.name}</p>
+                            <p class="text-xs text-blue-500 font-bold">$${item.price.toFixed(2)} x ${item.qty} = $${sub.toFixed(2)}</p>
                         </div>
-                        <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600 text-xl">&times;</button>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600 p-2 text-xl">&times;</button>
                     </div>
                 `;
             }).join('');
@@ -158,44 +154,40 @@
             document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
         }
 
-        // មុខងារផ្ញើទៅ Telegram (ជម្រើសទី ១ - Automated Redirect)
+        // ៣. មុខងារផ្ញើការកុម្ម៉ង់ (ប្រើ openTelegramLink)
         function checkout() {
-    if (cart.length === 0) {
-        alert("សូមរើសផលិតផលសិន!");
-        return;
-    }
+            if (cart.length === 0) return alert("សូមរើសផលិតផលសិន!");
 
-    const name = document.getElementById('cust-name').value;
-    const myTelegramUser = "roththa2"; // ប្រាកដថាឈ្មោះនេះត្រឹមត្រូវ
+            const name = document.getElementById('cust-name').value;
+            const myTelegramUser = "roththa2"; // ត្រូវប្រាកដថាឈ្មោះនេះត្រឹមត្រូវ (ដក @ ចេញ)
 
-    // រៀបចំសារ
-    let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    message += `👤 *អតិថិជន:* ${name}\n`;
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    
-    let total = 0;
-    cart.forEach((item, index) => {
-        const subTotal = item.price * item.qty;
-        total += subTotal;
-        message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
-    });
+            let message = "🏗️ *ការកុម្ម៉ង់សម្ភារៈសំណង់ថ្មី*\n";
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += `👤 *អតិថិជន:* ${name}\n`;
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            
+            let total = 0;
+            cart.forEach((item, index) => {
+                const subTotal = item.price * item.qty;
+                total += subTotal;
+                message += `${index + 1}. ${item.name} (x${item.qty}) = *$${subTotal.toFixed(2)}*\n`;
+            });
 
-    message += "━━━━━━━━━━━━━━━━━━\n";
-    message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
-    message += "━━━━━━━━━━━━━━━━━━\n";
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += `💰 *សរុបរួម: $${total.toFixed(2)}*\n`;
+            message += "━━━━━━━━━━━━━━━━━━\n";
+            message += "⏰ _ផ្ញើចេញពី Telegram Mini App_";
 
-    // បង្កើត Link សម្រាប់ផ្ញើ
-    const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
+            // បង្កើត Link ផ្លូវការរបស់ Telegram
+            const telegramUrl = `https://t.me/${myTelegramUser}?text=${encodeURIComponent(message)}`;
 
-    // ប្រើ Telegram SDK ដើម្បីបើក Link (នេះជាចំណុចដែលធ្វើឱ្យវាដើរ)
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.openTelegramLink(telegramUrl);
-    } else {
-        window.open(telegramUrl, '_blank');
-    }
-}
-
+            // ប្រើ SDK ដើម្បីបើក Chat (នេះនឹងលោតចេញពី Mini App ទៅ Chat ភ្លាម)
+            if (tg.openTelegramLink) {
+                tg.openTelegramLink(telegramUrl);
+            } else {
+                window.location.href = telegramUrl; // វិធីសាស្រ្តចុងក្រោយ បើ SDK មិនដើរ
+            }
+        }
     </script>
 </body>
 </html>
