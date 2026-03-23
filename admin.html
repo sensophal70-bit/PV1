@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roththa Admin - បញ្ចូលផលិតផល</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        body { font-family: 'Hanuman', serif; }
+    </style>
+</head>
+<body class="bg-gray-100 p-5">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl border border-gray-100 mt-10">
+        <h2 class="text-2xl font-bold mb-6 text-blue-800 text-center italic underline">បន្ថែមផលិតផលថ្មី</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះផលិតផល</label>
+                <input type="text" id="p-name" placeholder="ឧទាហរណ៍៖ ស៊ីម៉ងត៍ K-Cement" class="w-full p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">តម្លៃ ($)</label>
+                <input type="number" step="0.01" id="p-price" placeholder="ឧទាហរណ៍៖ 5.50" class="w-full p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">Link រូបភាព (URL)</label>
+                <input type="text" id="p-img" placeholder="បិទ Link រូបភាពនៅទីនេះ..." class="w-full p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <button onclick="addProduct()" id="btn-add" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all shadow-lg shadow-blue-200">
+                រក្សាទុកទៅ Firebase
+            </button>
+        </div>
+        <p id="status" class="mt-4 text-center text-sm font-bold"></p>
+        
+        <div class="mt-6 border-t pt-4">
+            <a href="index.html" class="block text-center text-gray-500 text-sm underline">ទៅកាន់ទំព័រហាងវិញ</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase Config របស់អ្នក (រូបភាពទី ៤)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
+            authDomain: "roththa-shop.firebaseapp.com",
+            projectId: "roththa-shop",
+            storageBucket: "roththa-shop.firebasestorage.app",
+            messagingSenderId: "570621300574",
+            appId: "1:570621300574:web:5448479ab7727038e9c402",
+            measurementId: "G-TZN1C3N9FX"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.addProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = parseFloat(document.getElementById('p-price').value);
+            const img = document.getElementById('p-img').value;
+            const btn = document.getElementById('btn-add');
+            const status = document.getElementById('status');
+
+            if (!name || isNaN(price)) {
+                alert("សូមបញ្ចូលឈ្មោះ និងតម្លៃឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            btn.disabled = true;
+            status.innerText = "⏳ កំពុងរក្សាទុក...";
+            status.className = "mt-4 text-center text-blue-500 font-bold";
+
+            try {
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    price: price,
+                    img: img || "https://via.placeholder.com/200",
+                    createdAt: serverTimestamp()
+                });
+                status.innerText = "✅ រួចរាល់! ផលិតផលត្រូវបានបង្ហាញក្នុងហាង។";
+                status.className = "mt-4 text-center text-green-500 font-bold";
+                
+                // លុបទិន្នន័យក្នុងប្រអប់ដើម្បីបញ្ចូលថ្មី
+                document.getElementById('p-name').value = "";
+                document.getElementById('p-price').value = "";
+                document.getElementById('p-img').value = "";
+            } catch (e) {
+                status.innerText = "❌ កំហុស៖ " + e.message;
+                status.className = "mt-4 text-center text-red-500 font-bold";
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
