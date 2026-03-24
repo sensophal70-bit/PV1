@@ -3,37 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Shop - PV1</title>
+    <title>Roththa Shop - ទំព័រដើម</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap'); body { font-family: 'Hanuman', serif; }</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        body { font-family: 'Hanuman', serif; -webkit-tap-highlight-color: transparent; }
+    </style>
 </head>
 <body class="bg-gray-100 pb-20">
-    <nav class="bg-blue-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
-        <h1 class="font-bold">Roththa Construction</h1>
-        <div class="relative cursor-pointer" onclick="toggleCart()">
+
+    <nav class="bg-blue-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
+        <h1 class="font-bold text-lg">Roththa Construction</h1>
+        <div class="relative cursor-pointer p-2" onclick="toggleCart()">
             <i class="fas fa-shopping-cart text-2xl"></i>
-            <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-[10px] rounded-full px-1.5 border-2 border-blue-800">0</span>
+            <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-[10px] rounded-full px-1.5 border-2 border-blue-800 font-bold">0</span>
         </div>
     </nav>
 
     <div id="product-list" class="grid grid-cols-2 gap-4 p-4">
-        <p class="col-span-2 text-center text-gray-400 py-10 italic">កំពុងទាញទិន្នន័យពី Firebase...</p>
+        <p class="col-span-2 text-center text-gray-400 py-10">កំពុងទាញទិន្នន័យ...</p>
     </div>
 
-    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
-        <div class="p-4 bg-blue-800 text-white flex justify-between items-center">
-            <span class="font-bold text-lg">កន្ត្រកទំនិញ</span>
-            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+        <div class="p-4 bg-blue-800 text-white flex justify-between items-center shadow-md">
+            <span class="font-bold text-lg"><i class="fas fa-shopping-basket mr-2"></i>កន្ត្រកទំនិញ</span>
+            <button onclick="toggleCart()" class="text-3xl p-2">&times;</button>
         </div>
-        <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
-        <div class="p-5 border-t bg-gray-50">
-            <input type="text" id="cust-name" readonly class="w-full mb-3 p-3 bg-white border rounded-xl font-bold text-gray-600">
-            <div class="flex justify-between items-center font-bold text-xl mb-4">
-                <span>សរុប:</span> <span id="cart-total" class="text-red-600">$0.00</span>
+        
+        <div id="cart-items-list" class="flex-grow overflow-y-auto p-4 space-y-3 bg-gray-50">
+            <p class="text-center text-gray-400 mt-10 italic">មិនទាន់មានទំនិញ</p>
+        </div>
+
+        <div class="p-5 border-t bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+            <div class="mb-3 text-sm text-gray-500 font-bold">
+                អតិថិជន៖ <span id="user-name" class="text-blue-700 ml-1">...</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg">បញ្ជាក់ការកុម្ម៉ង់</button>
+            <div class="flex justify-between items-center font-bold text-xl mb-4">
+                <span class="text-gray-700">សរុប:</span>
+                <span id="cart-total" class="text-red-600">$0.00</span>
+            </div>
+            <button onclick="sendOrder()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all">
+                <i class="fab fa-telegram-plane mr-2"></i>បញ្ជាក់ការកុម្ម៉ង់
+            </button>
         </div>
     </div>
 
@@ -47,66 +60,140 @@
             projectId: "roththa-shop",
             storageBucket: "roththa-shop.firebasestorage.app",
             messagingSenderId: "570621300574",
-            appId: "1:570621300574:web:5448479ab7727038e9c402",
-            measurementId: "G-TZN1C3N9FX"
+            appId: "1:570621300574:web:5448479ab7727038e9c402"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function loadProducts() {
-            try {
-                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                const products = [];
-                querySnapshot.forEach((doc) => products.push({ id: doc.id, ...doc.data() }));
-                renderUI(products);
-            } catch (error) { document.getElementById('product-list').innerHTML = "Error!"; }
-        }
+        // ១. ទាញឈ្មោះពី Telegram
+        window.onload = async () => {
+            const tele = window.Telegram.WebApp;
+            const user = tele.initDataUnsafe?.user;
+            document.getElementById('user-name').innerText = user ? user.first_name : "ភ្ញៀវ";
+            tele.expand();
 
-        window.renderUI = (items) => {
+            const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
             const list = document.getElementById('product-list');
-            if(items.length === 0) return list.innerHTML = "<p class='col-span-2 text-center text-gray-400'>គ្មានទំនិញ</p>";
-            list.innerHTML = items.map((p, index) => `
-                <div class="bg-white p-3 rounded-2xl shadow-sm border relative">
-                    <span class="absolute top-2 left-2 bg-black/40 text-white text-[9px] px-1.5 rounded-full">#${index + 1}</span>
-                    <img src="${p.img}" class="w-full h-24 object-cover rounded-xl mb-2">
-                    <h3 class="font-bold text-xs h-8 overflow-hidden text-gray-700">${p.name}</h3>
-                    <div class="flex justify-between items-center mt-2">
-                        <span class="text-red-600 font-bold">$${p.price.toFixed(2)}</span>
-                        <button onclick="addToCart('${p.id}', '${p.name}', ${p.price})" class="bg-blue-700 text-white p-2 rounded-lg text-xs">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.onload = () => {
-            const user = window.Telegram.WebApp.initDataUnsafe?.user;
-            document.getElementById('cust-name').value = user ? user.first_name : "ភ្ញៀវ";
-            loadProducts();
+            let html = '';
+            querySnapshot.forEach((doc) => {
+                const p = doc.data();
+                html += `
+                    <div class="bg-white p-3 rounded-2xl shadow-sm border relative overflow-hidden">
+                        <img src="${p.img}" class="w-full h-28 object-cover rounded-xl mb-2">
+                        <h3 class="font-bold text-xs h-8 overflow-hidden text-gray-700">${p.name}</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-red-600 font-bold">$${p.price.toFixed(2)}</span>
+                            <button onclick="addToCart('${doc.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-blue-700 text-white w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            list.innerHTML = html || "<p class='col-span-2 text-center'>គ្មានទំនិញ</p>";
         };
     </script>
 
     <script>
         let cart = [];
-        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('translate-x-full'); }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+        }
+
+        // បន្ថែមទំនិញ
         function addToCart(id, name, price) {
             const item = cart.find(i => i.id === id);
-            item ? item.qty++ : cart.push({ id, name, price, qty: 1 });
-            updateCart();
+            if (item) {
+                item.qty++;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            updateCartUI();
         }
-        function updateCart() {
+
+        // ប្តូរចំនួន (បូក/ដក)
+        function changeQty(index, amount) {
+            if (cart[index].qty + amount > 0) {
+                cart[index].qty += amount;
+            } else {
+                if (confirm("តើអ្នកចង់លុបទំនិញនេះមែនទេ?")) {
+                    cart.splice(index, 1);
+                }
+            }
+            updateCartUI();
+        }
+
+        // លុបទំនិញចេញ
+        function removeItem(index) {
+            if (confirm("លុបទំនិញនេះ?")) {
+                cart.splice(index, 1);
+                updateCartUI();
+            }
+        }
+
+        // បង្ហាញ UI ក្នុងកន្ត្រក
+        function updateCartUI() {
+            const list = document.getElementById('cart-items-list');
+            const totalDisplay = document.getElementById('cart-total');
+            const countDisplay = document.getElementById('cart-count');
+            
+            if (cart.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-400 mt-10 italic">មិនទាន់មានទំនិញ</p>';
+                totalDisplay.innerText = '$0.00';
+                countDisplay.innerText = '0';
+                return;
+            }
+
             let total = 0;
-            document.getElementById('cart-items').innerHTML = cart.map(i => {
-                total += i.price * i.qty;
-                return `<div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span>${i.name} x ${i.qty}</span><span class="font-bold text-red-500">$${(i.price * i.qty).toFixed(2)}</span></div>`;
+            list.innerHTML = cart.map((item, index) => {
+                const subTotal = item.price * item.qty;
+                total += subTotal;
+                return `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3">
+                        <div class="flex justify-between items-start">
+                            <span class="font-bold text-gray-800 flex-grow pr-2">${item.name}</span>
+                            <button onclick="removeItem(${index})" class="text-red-400 p-1"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center border rounded-xl bg-gray-50 p-1">
+                                <button onclick="changeQty(${index}, -1)" class="w-8 h-8 flex items-center justify-center font-bold text-red-500">-</button>
+                                <span class="w-10 text-center font-bold text-blue-800">${item.qty}</span>
+                                <button onclick="changeQty(${index}, 1)" class="w-8 h-8 flex items-center justify-center font-bold text-green-600">+</button>
+                            </div>
+                            <span class="font-bold text-blue-700">$${subTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
             }).join('');
-            document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('cart-count').innerText = cart.length;
+
+            totalDisplay.innerText = `$${total.toFixed(2)}`;
+            countDisplay.innerText = cart.length;
         }
-        function checkout() { alert("មុខងារផ្ញើសារទៅ Telegram កំពុងរង់ចាំ Token របស់អ្នក!"); }
+
+        function sendOrder() {
+            if (cart.length === 0) return alert("សូមរើសទំនិញសិន!");
+            const name = document.getElementById('user-name').innerText;
+            let text = `🛒 *ការកុម្ម៉ង់ថ្មីពី៖ ${name}*\n--------------------------\n`;
+            cart.forEach((i, idx) => {
+                text += `${idx+1}. ${i.name}\n   ${i.qty} x $${i.price} = *$${(i.qty*i.price).toFixed(2)}*\n`;
+            });
+            text += `--------------------------\n💰 *សរុប៖ ${document.getElementById('cart-total').innerText}*`;
+            
+            const botToken = "YOUR_BOT_TOKEN";
+            const chatId = "YOUR_CHAT_ID";
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
+
+            fetch(url).then(res => {
+                if(res.ok) {
+                    alert("ការកុម្ម៉ង់ត្រូវបានផ្ញើជោគជ័យ!");
+                    cart = [];
+                    updateCartUI();
+                    toggleCart();
+                }
+            });
+        }
     </script>
 </body>
 </html>
