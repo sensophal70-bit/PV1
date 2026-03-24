@@ -3,48 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - ប្រព័ន្ធគ្រប់គ្រង</title>
+    <title>Roththa Admin - CRUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; }
-    </style>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap'); body { font-family: 'Hanuman', serif; }</style>
 </head>
 <body class="bg-gray-50 p-4">
-
     <div class="max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-blue-800">Admin - គ្រប់គ្រងផលិតផល</h2>
-            <a href="index.html" class="bg-gray-200 px-4 py-2 rounded-xl text-sm font-bold">ទៅកាន់ហាង</a>
-        </div>
+        <h2 class="text-xl font-bold text-blue-800 mb-6 underline">គ្រប់គ្រងផលិតផល (PV1)</h2>
 
         <div class="bg-white p-6 rounded-3xl shadow-sm border mb-8">
-            <h3 id="form-title" class="font-bold mb-4 text-gray-600 underline text-sm uppercase">បន្ថែមផលិតផលថ្មី</h3>
             <input type="hidden" id="p-id">
+            <input type="hidden" id="p-img-base64">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="p-name" placeholder="ឈ្មោះផលិតផល" class="p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
-                <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
-                <input type="text" id="p-img" placeholder="Link រូបភាព" class="p-4 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <input type="text" id="p-name" placeholder="ឈ្មោះផលិតផល" class="p-4 border rounded-2xl outline-none bg-gray-50">
+                <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="p-4 border rounded-2xl outline-none bg-gray-50">
+                <div class="flex flex-col border p-2 rounded-2xl bg-gray-50">
+                    <label class="text-[10px] text-gray-400 ml-2">ជ្រើសរើសរូបភាព (Devices)</label>
+                    <input type="file" id="p-file" accept="image/*" class="text-xs">
+                </div>
             </div>
-            <div class="mt-4 flex gap-2">
-                <button onclick="saveProduct()" id="btn-save" class="flex-1 bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">រក្សាទុកទិន្នន័យ</button>
-                <button onclick="resetForm()" id="btn-cancel" class="hidden w-24 bg-gray-400 text-white py-4 rounded-2xl font-bold">បោះបង់</button>
-            </div>
+            <button onclick="saveProduct()" id="btn-save" class="w-full mt-4 bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">រក្សាទុក</button>
         </div>
 
-        <div class="relative mb-6">
-            <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
-            <input type="text" id="search-box" onkeyup="searchProduct()" placeholder="ស្វែងរកតាមឈ្មោះផលិតផល..." class="w-full pl-12 p-4 border rounded-2xl outline-none shadow-sm">
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-gray-100 text-gray-500 uppercase text-[10px]">
                     <tr>
+                        <th class="p-4">ល.រ</th>
                         <th class="p-4">រូបភាព</th>
-                        <th class="p-4">ឈ្មោះទំនិញ</th>
-                        <th class="p-4">តម្លៃ</th>
+                        <th class="p-4">ឈ្មោះ</th>
                         <th class="p-4 text-right">សកម្មភាព</th>
                     </tr>
                 </thead>
@@ -71,6 +59,29 @@
         const db = getFirestore(app);
         let products = [];
 
+        // ១. មុខងារបង្រួមរូបភាព (Compress Image)
+        document.getElementById('p-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.src = ev.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 500;
+                    const scale = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    document.getElementById('p-img-base64').value = canvas.toDataURL('image/jpeg', 0.7);
+                };
+            };
+        });
+
+        // ២. ទាញទិន្នន័យ
         async function fetchProducts() {
             const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
@@ -79,16 +90,15 @@
             renderTable(products);
         }
 
-        window.renderTable = function(items) {
-            const body = document.getElementById('table-body');
-            body.innerHTML = items.map(p => `
-                <tr class="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                    <td class="p-4"><img src="${p.img}" class="w-12 h-12 object-cover rounded-xl shadow-sm"></td>
-                    <td class="p-4 font-bold text-gray-700">${p.name}</td>
-                    <td class="p-4 text-red-600 font-bold">$${p.price.toFixed(2)}</td>
-                    <td class="p-4 text-right space-x-3">
+        window.renderTable = (items) => {
+            document.getElementById('table-body').innerHTML = items.map((p, index) => `
+                <tr class="border-b">
+                    <td class="p-4 text-gray-400 font-bold">${index + 1}</td>
+                    <td class="p-4"><img src="${p.img}" class="w-10 h-10 object-cover rounded-lg"></td>
+                    <td class="p-4 font-bold text-gray-700">${p.name} <br> <span class="text-red-500">$${p.price}</span></td>
+                    <td class="p-4 text-right space-x-4">
                         <button onclick="editProduct('${p.id}')" class="text-blue-600"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -98,23 +108,23 @@
             const id = document.getElementById('p-id').value;
             const name = document.getElementById('p-name').value;
             const price = parseFloat(document.getElementById('p-price').value);
-            const img = document.getElementById('p-img').value || "https://via.placeholder.com/200";
+            const img = document.getElementById('p-img-base64').value;
 
-            if(!name || isNaN(price)) return alert("សូមបំពេញទិន្នន័យឱ្យគ្រប់!");
-
+            if(!name || isNaN(price)) return alert("បំពេញទិន្នន័យឱ្យគ្រប់!");
+            
             try {
                 if(id) {
                     await updateDoc(doc(db, "products", id), { name, price, img });
                 } else {
                     await addDoc(collection(db, "products"), { name, price, img, createdAt: serverTimestamp() });
                 }
-                resetForm();
-                fetchProducts();
+                location.reload();
             } catch (e) { alert(e.message); }
         }
 
+        // ៣. ជួសជុល Delete ឱ្យដំណើរការ (ប្រើ Import Doc)
         window.deleteProduct = async (id) => {
-            if(confirm("តើអ្នកចង់លុបទំនិញនេះមែនទេ?")) {
+            if(confirm("លុបទំនិញនេះមែនទេ?")) {
                 await deleteDoc(doc(db, "products", id));
                 fetchProducts();
             }
@@ -125,26 +135,9 @@
             document.getElementById('p-id').value = p.id;
             document.getElementById('p-name').value = p.name;
             document.getElementById('p-price').value = p.price;
-            document.getElementById('p-img').value = p.img;
-            
-            document.getElementById('form-title').innerText = "កែប្រែទិន្នន័យ";
-            document.getElementById('btn-cancel').classList.remove('hidden');
+            document.getElementById('p-img-base64').value = p.img;
+            document.getElementById('btn-save').innerText = "Update ទិន្នន័យ";
             window.scrollTo(0,0);
-        }
-
-        window.searchProduct = () => {
-            const val = document.getElementById('search-box').value.toLowerCase();
-            const filtered = products.filter(p => p.name.toLowerCase().includes(val));
-            renderTable(filtered);
-        }
-
-        window.resetForm = () => {
-            document.getElementById('p-id').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-img').value = "";
-            document.getElementById('form-title').innerText = "បន្ថែមផលិតផលថ្មី";
-            document.getElementById('btn-cancel').classList.add('hidden');
         }
 
         window.onload = fetchProducts;
