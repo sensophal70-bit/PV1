@@ -189,7 +189,6 @@
             await addDoc(collection(db, "products"), { name, price, category: cat, createdAt: serverTimestamp() });
             location.reload();
         };
-
         window.onload = loadAll;
     </script>
 </body>
