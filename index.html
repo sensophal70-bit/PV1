@@ -146,35 +146,84 @@
 
         // ៣. Checkout & Telegram (ដូចក្នុងរូបភាព ១០០%)
         window.checkout = async () => {
-            // ទាញឈ្មោះពី Telegram បើអត់មានសួរឈ្មោះ
-            let name = tg.initDataUnsafe?.user?.first_name || localStorage.getItem('cust_name');
-            let username = tg.initDataUnsafe?.user?.username || localStorage.getItem('cust_user');
+    // ១. ទាញយកព័ត៌មានអតិថិជន (ស្វ័យប្រវត្តិពី Telegram ឬ LocalStorage)
+    let name = tg.initDataUnsafe?.user?.first_name || localStorage.getItem('cust_name');
+    let username = tg.initDataUnsafe?.user?.username || localStorage.getItem('cust_user');
 
-            if (!name) { 
-                name = prompt("សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក៖"); 
-                if(!name) return; 
-                localStorage.setItem('cust_name', name); 
-            }
-            const profileLink = username ? `https://t.me/${username}` : "មិនមាន";
-            const now = new Date();
-            const date = now.toLocaleDateString('en-GB');
-            const time = now.toLocaleTimeString('en-US', { hour12: true });
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            let itemsTxt = cart.map((i, idx) => `${idx + 1}. ${i.name}  (x${i.qty}) = *$${(i.qty * i.price).toFixed(2)}*`).join('\n');
+    // បើអត់មានឈ្មោះទេ ឱ្យគាត់បំពេញលើកដំបូង
+    if (!name) { 
+        name = prompt("សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក (Full Name):"); 
+        if(!name) return; 
+        localStorage.setItem('cust_name', name); 
+    }
+    
+    // រក្សាទុក Username បើមាន
+    if(username) localStorage.setItem('cust_user', username);
 
-            const message = `🏗 *ការកុម្ម៉ង់ថ្មី (ស្វ័យប្រវត្តិ)*\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n👤 *អតិថិជន:* ${name}\n📅 *ថ្ងៃទី:* ${date}\n⏰ *ម៉ោង:* ${time}\n🔗 *Profile:* [ចុចទីនេះដើម្បី Chat](${profileLink})\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n${itemsTxt}\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n💰 *សរុប: $${total.toFixed(2)}*\n\n🚀 *ផ្ញើចេញពី Roththa Mini App*`;
+    const profileLink = username ? `https://t.me/${username}` : "មិនមាន";
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    
+    const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+    
+    // រៀបចំបញ្ជីទំនិញ
+    let itemsTxt = cart.map((i, idx) => `${idx + 1}. ${i.name}  (x${i.qty}) = *$${(i.qty * i.price).toFixed(2)}*`).join('\n');
 
-            try {
-                await addDoc(collection(db, "orders"), { customer_name: name, items: cart, total_amount: `$${total.toFixed(2)}`, createdAt: serverTimestamp() });
-                await fetch(`https://api.telegram.org/bot7981313490:AAEV9-R868xX9vX_5rA-uG6tF65R0eW_U2w/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
-                });
-                alert("ការកម្មង់ទទួលបានជោគជ័យ!");
-                cart = []; updateCartUI(); toggleCartModal();
-            } catch (e) { alert("Error!"); }
-        };
+    // ២. រៀបចំទម្រង់សារសម្រាប់ផ្ញើទៅ Telegram (Style ដូចរូបភាពគំរូ)
+    const message = 
+        `🏗 *ការកុម្ម៉ង់ថ្មី (ស្វ័យប្រវត្តិ)*\n` +
+        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n` +
+        `👤 *អតិថិជន:* ${name}\n` +
+        `📅 *ថ្ងៃទី:* ${dateStr}\n` +
+        `⏰ *ម៉ោង:* ${timeStr}\n` +
+        `🔗 *Profile:* [ចុចទីនេះដើម្បី Chat](${profileLink})\n\n` +
+        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n` +
+        `${itemsTxt}\n\n` +
+        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n` +
+        `💰 *សរុប: $${total.toFixed(2)}*\n\n` +
+        `🚀 *ផ្ញើចេញពី Roththa Mini App*`;
+
+    // ៣. កំណត់អត្តសញ្ញាណ Bot និង អ្នកទទួល
+    const botToken = "7981313490:AAEV9-R868xX9vX_5rA-uG6tF65R0eW_U2w";
+    const chatId = "7453536903"; // ប្តូរទៅ Chat ID ថ្មីរបស់អ្នករួចរាល់
+
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: "Markdown",
+                disable_web_page_preview: false
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+            // រក្សាទុកក្នុង Firebase History សម្រាប់ Admin
+            await addDoc(collection(db, "orders"), {
+                customer_name: name,
+                items: cart,
+                total_amount: `$${total.toFixed(2)}`,
+                createdAt: serverTimestamp()
+            });
+
+            alert("✅ ការកុម្ម៉ង់ត្រូវបានផ្ញើទៅកាន់ Telegram រួចរាល់!");
+            cart = []; 
+            updateCartUI(); 
+            if(document.getElementById('cart-modal').classList.contains('active')) toggleCartModal();
+        } else {
+            console.error("Telegram Send Error:", result);
+            alert("❌ ផ្ញើមិនចេញទេ! សូមប្រាកដថាអ្នកបានចុច Start លើ Bot រួចហើយ។");
+        }
+    } catch (e) {
+        console.error("Connection Error:", e);
+        alert("❌ មានបញ្ហាអ៊ីនធឺណិត! សូមព្យាយាមម្តងទៀត។");
+    }
+};
 
         // ៤. History Logic
         window.toggleHistoryModal = async () => {
