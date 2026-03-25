@@ -7,22 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
+        /* បញ្ចូល Font ខ្មែរសម្រាប់ប្រើប្រាស់ក្នុង App */
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        
         body { font-family: 'Hanuman', serif; background-color: #f8fafc; }
         .no-scrollbar::-webkit-scrollbar { width: 4px; }
         .no-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        
-        /* Style សម្រាប់ពេល Export PDF */
-        #pdf-template { font-family: 'Hanuman', serif; padding: 20px; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10px; }
-        .pdf-table th { background-color: #f2f2f2; }
+
+        /* Style សម្រាប់តារាងក្នុង PDF */
+        .pdf-box { font-family: 'Hanuman', serif; padding: 20px; color: black; background: white; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .pdf-table th { background-color: #1e40af; color: white; border: 1px solid #1e3a8a; padding: 10px; font-size: 12px; }
+        .pdf-table td { border: 1px solid #ddd; padding: 8px; font-size: 11px; }
+        .pdf-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e40af; padding-bottom: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
     <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
@@ -35,7 +39,7 @@
                     <select id="p-cat" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
                         <option value="ទូទៅ">ជ្រើសរើសប្រភេទ</option>
                     </select>
-                    <button id="btn-save" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md">រក្សាទុក</button>
+                    <button id="btn-save" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">រក្សាទុក</button>
                 </div>
             </div>
         </div>
@@ -46,14 +50,12 @@
                 <div class="p-5 bg-gray-50 flex justify-between items-center border-b">
                     <span class="text-xs font-bold text-gray-500 uppercase">បញ្ជីផលិតផល</span>
                     <div class="flex gap-2">
-                        <button onclick="exportProducts('excel')" class="bg-green-100 text-green-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">EXCEL</button>
-                        <button onclick="exportProducts('pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">PDF</button>
+                        <button onclick="exportData('product', 'excel')" class="bg-green-100 text-green-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">EXCEL</button>
+                        <button onclick="exportData('product', 'pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">PDF</button>
                     </div>
                 </div>
                 <div class="overflow-y-auto no-scrollbar flex-grow p-4">
-                    <table class="w-full text-left" id="prod-table">
-                        <tbody id="product-list" class="divide-y divide-gray-50 text-xs"></tbody>
-                    </table>
+                    <table class="w-full text-left"><tbody id="product-list" class="divide-y divide-gray-50 text-xs"></tbody></table>
                 </div>
             </div>
 
@@ -61,8 +63,8 @@
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h2 class="font-bold text-blue-900 text-sm">ប្រវត្តិកម្មង់</h2>
                     <div class="flex gap-2">
-                        <button onclick="exportOrders('excel')" class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">EXCEL</button>
-                        <button onclick="exportOrders('pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">PDF</button>
+                        <button onclick="exportData('order', 'excel')" class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">EXCEL</button>
+                        <button onclick="exportData('order', 'pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[10px] font-bold">PDF</button>
                     </div>
                 </div>
                 <div id="order-list" class="space-y-4 overflow-y-auto no-scrollbar"></div>
@@ -70,10 +72,13 @@
         </div>
     </div>
 
-    <div id="pdf-container" style="display: none;">
-        <div id="pdf-content">
-            <h2 style="text-align: center; color: #1e40af;" id="pdf-title">របាយការណ៍</h2>
-            <div id="pdf-body"></div>
+    <div id="pdf-render-zone" style="position: absolute; left: -9999px; top: 0; width: 800px;">
+        <div id="pdf-content" class="pdf-box">
+            <div class="pdf-header">
+                <h1 style="font-size: 24px; margin: 0;">Roththa Shop - របាយការណ៍</h1>
+                <p style="font-size: 12px; color: #666;">កាលបរិច្ឆេទ៖ <span id="pdf-date"></span></p>
+            </div>
+            <div id="pdf-table-area"></div>
         </div>
     </div>
 
@@ -95,53 +100,57 @@
         let allProducts = [];
         let allOrders = [];
 
-        // --- EXPORT PDF (Support Khmer) ---
-        window.exportProducts = (type) => {
-            if (type === 'excel') {
-                let csv = "\uFEFFឈ្មោះ,តម្លៃ,ប្រភេទ\n";
-                allProducts.forEach(p => csv += `"${p.name}","${p.price}","${p.category}"\n`);
-                downloadExcel(csv, "Products.csv");
+        // --- មុខងារ Export ---
+        window.exportData = async (target, format) => {
+            const data = (target === 'product') ? allProducts : allOrders;
+            if (data.length === 0) return alert("គ្មានទិន្នន័យ!");
+
+            if (format === 'excel') {
+                let csv = "\uFEFF"; // គន្លឹះឱ្យ Excel ស្គាល់អក្សរខ្មែរ
+                if (target === 'product') {
+                    csv += "ឈ្មោះផលិតផល,តម្លៃ,ប្រភេទ\n";
+                    data.forEach(p => csv += `"${p.name}","${p.price}","${p.category}"\n`);
+                } else {
+                    csv += "ថ្ងៃខែ,អតិថិជន,ទំនិញ,សរុប\n";
+                    data.forEach(o => csv += `"${o.createdAt?.toDate().toLocaleString('km-KH')}","${o.customer_name}","${o.items.map(i=>i.name).join(' ')}","${o.total_amount}"\n`);
+                }
+                downloadExcel(csv, target + "_report.csv");
             } else {
-                generatePDF("បញ្ជីផលិតផល", `
-                    <table class="pdf-table">
-                        <thead><tr><th>ឈ្មោះផលិតផល</th><th>តម្លៃ</th><th>ប្រភេទ</th></tr></thead>
-                        <tbody>${allProducts.map(p => `<tr><td>${p.name}</td><td>$${p.price}</td><td>${p.category}</td></tr>`).join('')}</tbody>
-                    </table>
-                `, "Product_List.pdf");
+                // Export PDF
+                await generateKhmerPDF(target, data);
             }
         };
 
-        window.exportOrders = (type) => {
-            if (type === 'excel') {
-                let csv = "\uFEFFថ្ងៃខែ,អតិថិជន,ទំនិញ,សរុប\n";
-                allOrders.forEach(o => {
-                    const items = o.items.map(i => `${i.name}x${i.qty}`).join(' | ');
-                    csv += `"${o.createdAt?.toDate().toLocaleDateString('km-KH')}","${o.customer_name}","${items}","${o.total_amount}"\n`;
-                });
-                downloadExcel(csv, "Orders.csv");
-            } else {
-                generatePDF("ប្រវត្តិការកុម្ម៉ង់", `
-                    <table class="pdf-table">
-                        <thead><tr><th>ថ្ងៃខែ</th><th>អតិថិជន</th><th>ទំនិញ</th><th>សរុប</th></tr></thead>
-                        <tbody>${allOrders.map(o => `<tr><td>${o.createdAt?.toDate().toLocaleDateString('km-KH')}</td><td>${o.customer_name}</td><td>${o.items.map(i => i.name+'x'+i.qty).join(', ')}</td><td>${o.total_amount}</td></tr>`).join('')}</tbody>
-                    </table>
-                `, "Order_History.pdf");
-            }
-        };
+        async function generateKhmerPDF(target, data) {
+            const area = document.getElementById('pdf-table-area');
+            document.getElementById('pdf-date').innerText = new Date().toLocaleString('km-KH');
 
-        function generatePDF(title, htmlContent, fileName) {
+            let html = `<table class="pdf-table"><thead><tr>`;
+            if (target === 'product') {
+                html += `<th>ឈ្មោះផលិតផល</th><th>តម្លៃ</th><th>ប្រភេទ</th></tr></thead><tbody>`;
+                data.forEach(p => html += `<tr><td>${p.name}</td><td>$${p.price}</td><td>${p.category}</td></tr>`);
+            } else {
+                html += `<th>កាលបរិច្ឆេទ</th><th>អតិថិជន</th><th>ទំនិញ</th><th>សរុប</th></tr></thead><tbody>`;
+                data.forEach(o => html += `<tr><td>${o.createdAt?.toDate().toLocaleDateString('km-KH')}</td><td>${o.customer_name}</td><td>${o.items.map(i=>i.name+'x'+i.qty).join(', ')}</td><td>${o.total_amount}</td></tr>`);
+            }
+            html += `</tbody></table>`;
+            area.innerHTML = html;
+
+            // រង់ចាំ Font ឱ្យ Load ចប់សិន
+            await document.fonts.ready;
+
             const element = document.getElementById('pdf-content');
-            document.getElementById('pdf-title').innerText = title;
-            document.getElementById('pdf-body').innerHTML = htmlContent;
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            const opt = {
-                margin: 10,
-                filename: fileName,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(target + "_report.pdf");
         }
 
         function downloadExcel(csv, name) {
@@ -151,26 +160,37 @@
             link.download = name; link.click();
         }
 
-        // --- Load Data ---
-        async function loadData() {
+        // --- ទាញទិន្នន័យពី Firebase ---
+        async function loadAll() {
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = pSnap.docs.map(d => d.data());
             document.getElementById('product-list').innerHTML = allProducts.map(p => `
-                <tr><td class="py-3 font-bold">${p.name}</td><td class="py-3 text-red-500">$${p.price}</td></tr>
-            `).join('');
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="py-3 font-bold">${p.name}</td>
+                    <td class="py-3 text-red-500 font-bold text-right pr-4">$${p.price}</td>
+                </tr>`).join('');
 
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
             allOrders = oSnap.docs.map(d => d.data());
             document.getElementById('order-list').innerHTML = allOrders.map(o => `
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-[11px]">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <div class="font-bold text-blue-900">${o.customer_name}</div>
-                    <div class="text-gray-500">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
-                    <div class="mt-1 text-red-600 font-bold">សរុប៖ ${o.total_amount}</div>
-                </div>
-            `).join('');
+                    <div class="text-[10px] text-gray-400">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
+                    <div class="text-[11px] mt-2 border-t pt-2">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
+                    <div class="text-right font-bold text-red-600 mt-1">${o.total_amount}</div>
+                </div>`).join('');
         }
 
-        window.onload = loadData;
+        document.getElementById('btn-save').onclick = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = parseFloat(document.getElementById('p-price').value);
+            const cat = document.getElementById('p-cat').value;
+            if(!name || !price) return alert("សូមបំពេញទិន្នន័យ!");
+            await addDoc(collection(db, "products"), { name, price, category: cat, createdAt: serverTimestamp() });
+            location.reload();
+        };
+
+        window.onload = loadAll;
     </script>
 </body>
 </html>
