@@ -176,70 +176,49 @@
 
         // ៣. Checkout with Telegram (Using Your Token & Chat ID)
         // --- មុខងារ Checkout និងផ្ញើទៅ Telegram ---
+// ១. មុខងារផ្ញើការកម្មង់ និងរក្សាទុក History (Support ភាសាខ្មែរ)
 window.checkout = async () => {
-    // ១. ទាញទិន្នន័យឈ្មោះពី Telegram Profile
     const user = tg.initDataUnsafe?.user;
     let fullName = (user?.first_name || "") + " " + (user?.last_name || "");
-    fullName = fullName.trim() || localStorage.getItem('cust_name');
+    fullName = fullName.trim() || localStorage.getItem('cust_name') || "អតិថិជន";
 
-    if (!fullName) {
-        fullName = prompt("សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក៖");
-        if (!fullName) return;
-        localStorage.setItem('cust_name', fullName);
-    }
-
-    const username = user?.username || "";
-    const profileLink = username ? `https://t.me/${username}` : "មិនមាន";
-    
-    // ២. រៀបចំពេលវេលាជាភាសាខ្មែរ
     const now = new Date();
     const dateStr = now.toLocaleDateString('km-KH'); 
     const timeStr = now.toLocaleTimeString('km-KH', { hour12: true });
-    
     const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-    let itemsTxt = cart.map((i, idx) => `${idx + 1}. ${i.name} (x${i.qty}) = *$${(i.qty * i.price).toFixed(2)}*`).join('\n');
 
-    // ៣. ទម្រង់សារផ្ញើទៅ Admin (Telegram)
-    const message = 
-        `🏗 *ការកុម្ម៉ង់ថ្មី*\n` +
-        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n` +
-        `👤 *អតិថិជន:* ${fullName}\n` +
-        `📅 *កាលបរិច្ឆេទ:* ${dateStr}\n` +
-        `⏰ *ម៉ោង:* ${timeStr}\n` +
-        `🔗 *អាសយដ្ឋាន Telegram:* [ចុចទីនេះ](${profileLink})\n\n` +
-        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n` +
-        `${itemsTxt}\n\n` +
-        `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n` +
-        `💰 *សរុបទាំងអស់: $${total.toFixed(2)}*\n\n` +
-        `🚀 *ផ្ញើចេញពី: Roththa Mini App*`;
+    // រៀបចំសារផ្ញើទៅ Telegram
+    let itemsTxt = cart.map((i, idx) => `${idx + 1}. ${i.name} (x${i.qty}) = *$${(i.qty * i.price).toFixed(2)}*`).join('\n');
+    const message = `🏗 *ការកុម្ម៉ង់ថ្មី*\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n👤 *អតិថិជន:* ${fullName}\n📅 *ថ្ងៃ:* ${dateStr}\n⏰ *ម៉ោង:* ${timeStr}\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n${itemsTxt}\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n💰 *សរុប: $${total.toFixed(2)}*`;
 
     try {
-        // ៤. ផ្ញើទៅ Telegram Bot (មិនចាំបាច់ Save ក្នុង Firebase បើមិនចង់បាន)
         const response = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: "7453536903",
-                text: message,
-                parse_mode: "Markdown"
-            })
+            body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
         });
 
         if (response.ok) {
-            // រក្សាទុកក្នុង History Local (សម្រាប់តែអតិថិជនមើលខ្លួនឯង)
-            const orderHistory = JSON.parse(localStorage.getItem('my_orders') || "[]");
-            orderHistory.unshift({ date: dateStr, time: timeStr, items: cart, total: total });
-            localStorage.setItem('my_orders', JSON.stringify(orderHistory.slice(0, 10))); // ទុកតែ ១០ កម្មង់ចុងក្រោយ
+            // --- ចំណុចសំខាន់: រក្សាទុកក្នុង LocalStorage (Support ខ្មែរ) ---
+            const oldOrders = JSON.parse(localStorage.getItem('my_orders') || "[]");
+            const newOrder = {
+                date: dateStr,
+                time: timeStr,
+                items: [...cart], // Copy កន្ត្រកទំនិញទាំងអស់ (រួមទាំងឈ្មោះខ្មែរ)
+                total: total
+            };
+            oldOrders.unshift(newOrder); // ដាក់ចូលខាងលើគេបង្អស់
+            localStorage.setItem('my_orders', JSON.stringify(oldOrders));
 
-            alert("✅ ការកុម្ម៉ង់របស់អ្នកត្រូវបានផ្ញើទៅកាន់អ្នកលក់រួចរាល់!");
+            alert("✅ កម្មង់ជោគជ័យ! ប្រវត្តិត្រូវបានរក្សាទុក។");
             cart = []; 
             updateCartUI(); 
             toggleCartModal();
         }
-    } catch (e) { alert("មានបញ្ហាអ៊ីនធឺណិត!"); }
+    } catch (e) { alert("Error!"); }
 };
 
-// --- មុខងារបង្ហាញប្រវត្តិកម្មង់ (History) ជាភាសាខ្មែរ ---
+// ២. មុខងារបង្ហាញ History (ជួសជុលបញ្ហាមិនបង្ហាញឈ្មោះខ្មែរ)
 window.toggleHistoryModal = () => {
     const modal = document.getElementById('history-modal');
     const overlay = document.getElementById('history-overlay');
@@ -251,24 +230,30 @@ window.toggleHistoryModal = () => {
 
     if (modal.classList.contains('active')) {
         const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+        
         if (history.length === 0) {
-            list.innerHTML = "<p class='text-center py-10 text-gray-400'>មិនទាន់មានប្រវត្តិកម្មង់នៅឡើយទេ</p>";
+            list.innerHTML = "<p class='text-center py-10 text-gray-400 text-xs'>មិនទាន់មានប្រវត្តិកម្មង់</p>";
             return;
         }
 
-        list.innerHTML = history.map(o => `
-            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-3 shadow-sm">
-                <div class="flex justify-between items-center mb-2 border-b border-blue-200 pb-1">
-                    <span class="text-[10px] text-blue-600 font-bold">${o.date} | ${o.time}</span>
-                    <span class="text-red-600 font-bold text-sm">$${o.total.toFixed(2)}</span>
+        // រៀបចំការបង្ហាញទិន្នន័យ (ធានាថាទាញយកឈ្មោះ i.name មកបង្ហាញត្រឹមត្រូវ)
+        list.innerHTML = history.map(order => `
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-3">
+                <div class="flex justify-between items-center mb-2 border-b pb-1">
+                    <span class="text-[9px] text-blue-600 font-bold">${order.date} | ${order.time}</span>
+                    <span class="text-red-600 font-bold text-xs">$${order.total.toFixed(2)}</span>
                 </div>
-                <div class="text-[11px] text-gray-700 leading-relaxed">
-                    ${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}
+                <div class="text-[10px] text-gray-700 space-y-1">
+                    ${order.items.map(i => `<div>• ${i.name} <span class="text-gray-400">(x${i.qty})</span></div>`).join('')}
                 </div>
             </div>
         `).join('');
     }
 };
+
+
+// --- មុខងារបង្ហាញប្រវត្តិកម្មង់ (History) ជាភាសាខ្មែរ ---
+
 
 
 
