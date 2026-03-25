@@ -12,11 +12,22 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 pb-20">
 
     <div class="max-w-xl mx-auto space-y-8">
+        
+        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-blue-100">
+            <h2 class="font-bold text-blue-900 mb-4 flex items-center"><i class="fas fa-tags mr-2"></i> បន្ថែមប្រភេទផលិតផល</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="new-cat-name" placeholder="ឈ្មោះប្រភេទ (ឧ៖ ថ្ម)" class="flex-grow p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm">
+                <button id="btn-add-cat" class="bg-blue-600 text-white px-6 rounded-xl font-bold text-xs shadow active:scale-95">បន្ថែម</button>
+            </div>
+            <div id="cat-tags-list" class="flex flex-wrap gap-2">
+                </div>
+        </div>
+
         <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
-            <h1 id="form-title" class="text-blue-900 font-bold text-center text-xl mb-6">គ្រប់គ្រងផលិតផល (PV1)</h1>
+            <h1 id="form-title" class="text-blue-900 font-bold text-center text-xl mb-6 underline underline-offset-8">គ្រប់គ្រងទំនិញ</h1>
             <input type="hidden" id="edit-id">
             
             <div class="space-y-4">
@@ -24,21 +35,18 @@
                 <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
                 
                 <div class="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-2xl text-center">
-                    <label class="text-[10px] text-gray-400 block mb-2 font-bold">រូបភាពផលិតផល</label>
+                    <label class="text-[10px] text-gray-400 block mb-2 font-bold uppercase">រូបភាពផលិតផល</label>
                     <input type="file" id="p-file" accept="image/*" class="text-xs text-gray-500 mb-2">
                     <input type="hidden" id="p-img">
                     <div id="preview-container" class="hidden flex justify-center"><img id="img-preview" src="" class="w-20 h-20 object-cover rounded-xl border"></div>
                 </div>
 
                 <select id="p-cat" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none">
-                    <option value="ដែក">ដែក</option>
-                    <option value="ស៊ីម៉ង់ត៍">ស៊ីម៉ង់ត៍</option>
-                    <option value="ឥដ្ឋ/ខ្សាច់">ឥដ្ឋ/ខ្សាច់</option>
-                    <option value="ផ្សេងៗ">ផ្សេងៗ</option>
+                    <option value="">ជ្រើសរើសប្រភេទផលិតផល</option>
                 </select>
 
                 <div class="flex gap-2">
-                    <button id="btn-save" class="flex-grow bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">រក្សាទុក</button>
+                    <button id="btn-save" class="flex-grow bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">រក្សាទុកទិន្នន័យ</button>
                     <button id="btn-cancel" class="hidden bg-gray-400 text-white px-6 rounded-2xl font-bold" onclick="resetForm()">បោះបង់</button>
                 </div>
             </div>
@@ -54,9 +62,7 @@
 
         <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
             <h2 class="font-bold text-blue-900 mb-4 italic underline underline-offset-4">ប្រវត្តិការកុម្ម៉ង់អតិថិជន</h2>
-            <div id="order-history-list" class="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar">
-                <p class="text-center text-gray-400 italic text-xs py-10">មិនទាន់មានទិន្នន័យ...</p>
-            </div>
+            <div id="order-history-list" class="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar"></div>
         </div>
     </div>
 
@@ -77,45 +83,91 @@
         const db = getFirestore(app);
         let allProducts = [];
 
-        // --- ១. មុខងារ File Picker ---
-        document.getElementById('p-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.getElementById('p-img').value = event.target.result;
-                    document.getElementById('img-preview').src = event.target.result;
-                    document.getElementById('preview-container').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+        // --- ១. គ្រប់គ្រង CATEGORY ---
 
-        // --- ២. មុខងារលុបផលិតផល (ជួសជុលឱ្យដើរ ១០០%) ---
-        window.deleteProduct = async (id) => {
-            if(confirm("តើអ្នកប្រាកដថាចង់លុបផលិតផលនេះ?")) {
-                try {
-                    await deleteDoc(doc(db, "products", id));
-                    alert("បានលុបជោគជ័យ!");
-                    loadAllData();
-                } catch (e) { alert("Error deleting product!"); }
+        window.loadCategories = async () => {
+            const snap = await getDocs(collection(db, "categories"));
+            const list = document.getElementById('cat-tags-list');
+            const select = document.getElementById('p-cat');
+            
+            list.innerHTML = '';
+            select.innerHTML = '<option value="">ជ្រើសរើសប្រភេទផលិតផល</option>';
+
+            snap.forEach(res => {
+                const cat = res.data().name;
+                // បង្ហាញជា Tag សម្រាប់លុប
+                list.innerHTML += `<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-100 flex items-center gap-2">
+                    ${cat} <i onclick="deleteCategory('${res.id}')" class="fas fa-times-circle cursor-pointer text-red-400"></i>
+                </span>`;
+                // បន្ថែមចូលក្នុង Dropdown
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        };
+
+        document.getElementById('btn-add-cat').onclick = async () => {
+            const name = document.getElementById('new-cat-name').value;
+            if(!name) return;
+            await addDoc(collection(db, "categories"), { name });
+            document.getElementById('new-cat-name').value = '';
+            loadCategories();
+        };
+
+        window.deleteCategory = async (id) => {
+            if(confirm("តើអ្នកចង់លុបប្រភេទនេះ?")) {
+                await deleteDoc(doc(db, "categories", id));
+                loadCategories();
             }
         };
 
-        // --- ៣. មុខងារលុប History កុម្ម៉ង់ ---
+        // --- ២. គ្រប់គ្រងផលិតផល & ORDERS ---
+
+        window.deleteProduct = async (id) => {
+            if(confirm("លុបផលិតផលនេះ?")) {
+                await deleteDoc(doc(db, "products", id));
+                loadAllData();
+            }
+        };
+
         window.deleteOrder = async (id) => {
             if(confirm("លុបប្រវត្តិការកុម្ម៉ង់នេះ?")) {
-                try {
-                    await deleteDoc(doc(db, "orders", id));
-                    loadAllData();
-                } catch (e) { alert("Error deleting order!"); }
+                await deleteDoc(doc(db, "orders", id));
+                loadAllData();
             }
         };
 
-        // --- ៤. មុខងារ Edit ផលិតផល ---
+        document.getElementById('p-file').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('p-img').value = ev.target.result;
+                document.getElementById('img-preview').src = ev.target.result;
+                document.getElementById('preview-container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        document.getElementById('btn-save').onclick = async () => {
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                img: document.getElementById('p-img').value,
+                category: document.getElementById('p-cat').value,
+                updatedAt: serverTimestamp()
+            };
+
+            if(!data.name || !data.price || !data.category) return alert("សូមបំពេញឱ្យគ្រប់!");
+
+            const btn = document.getElementById('btn-save');
+            btn.disabled = true;
+
+            if(id) await updateDoc(doc(db, "products", id), data);
+            else { data.createdAt = serverTimestamp(); await addDoc(collection(db, "products"), data); }
+            
+            resetForm(); loadAllData(); btn.disabled = false;
+        };
+
         window.editProduct = (id) => {
-            const p = allProducts.find(item => item.id === id);
-            if(!p) return;
+            const p = allProducts.find(i => i.id === id);
             document.getElementById('edit-id').value = p.id;
             document.getElementById('p-name').value = p.name;
             document.getElementById('p-price').value = p.price;
@@ -124,52 +176,19 @@
             document.getElementById('img-preview').src = p.img;
             document.getElementById('preview-container').classList.remove('hidden');
             document.getElementById('form-title').innerText = "កែសម្រួលផលិតផល";
-            document.getElementById('btn-save').innerText = "អាប់ដេតទិន្នន័យ";
+            document.getElementById('btn-save').innerText = "អាប់ដេត";
             document.getElementById('btn-cancel').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // --- ៥. រក្សាទុក ឬ អាប់ដេត ---
-        document.getElementById('btn-save').onclick = async () => {
-            const id = document.getElementById('edit-id').value;
-            const name = document.getElementById('p-name').value;
-            const price = parseFloat(document.getElementById('p-price').value);
-            const img = document.getElementById('p-img').value;
-            const category = document.getElementById('p-cat').value;
-
-            if(!name || !price || !img) return alert("សូមបំពេញឱ្យគ្រប់!");
-
-            const btn = document.getElementById('btn-save');
-            btn.disabled = true; btn.innerText = "កំពុងរក្សាទុក...";
-
-            try {
-                if (id) {
-                    await updateDoc(doc(db, "products", id), { name, price, img, category, updatedAt: serverTimestamp() });
-                } else {
-                    await addDoc(collection(db, "products"), { name, price, img, category, createdAt: serverTimestamp() });
-                }
-                resetForm();
-                loadAllData();
-            } catch (e) { alert("Error saving data!"); } finally { btn.disabled = false; btn.innerText = "រក្សាទុក"; }
-        };
-
-        // --- ៦. ទាញទិន្នន័យទាំងអស់មកបង្ហាញ ---
         async function loadAllData() {
-            // Load Products
+            loadCategories();
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = [];
-            pSnap.forEach(docSnap => allProducts.push({id: docSnap.id, ...docSnap.data()}));
-            renderProductTable(allProducts);
-
-            // Load Orders (History)
-            const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
-            renderOrderHistory(oSnap);
-        }
-
-        function renderProductTable(data) {
-            const tbody = document.getElementById('product-table-body');
-            tbody.innerHTML = data.map(p => `
-                <tr class="hover:bg-gray-50 transition-all">
+            pSnap.forEach(d => allProducts.push({id: d.id, ...d.data()}));
+            
+            document.getElementById('product-table-body').innerHTML = allProducts.map(p => `
+                <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 w-16"><img src="${p.img}" class="w-10 h-10 object-cover rounded-xl shadow-sm border"></td>
                     <td class="px-2 py-3">
                         <div class="font-bold text-gray-800 text-xs">${p.name}</div>
@@ -180,32 +199,20 @@
                         <button onclick="deleteProduct('${p.id}')" class="text-red-300 p-1"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`).join('');
-        }
 
-        function renderOrderHistory(snapshot) {
-            const list = document.getElementById('order-history-list');
-            let html = '';
-            snapshot.forEach(docSnap => {
+            const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
+            document.getElementById('order-history-list').innerHTML = oSnap.docs.map(docSnap => {
                 const o = docSnap.data();
-                const date = o.createdAt?.toDate().toLocaleString('km-KH') || "ទើបតែមុននេះ";
-                html += `
+                return `
                 <div class="bg-gray-50 p-4 rounded-2xl border relative border-gray-100">
-                    <button onclick="deleteOrder('${docSnap.id}')" class="absolute top-3 right-3 text-red-300 hover:text-red-500 text-xs"><i class="fas fa-times-circle text-lg"></i></button>
+                    <button onclick="deleteOrder('${docSnap.id}')" class="absolute top-3 right-3 text-red-300 text-xs"><i class="fas fa-times-circle text-lg"></i></button>
                     <div class="font-bold text-blue-900 text-xs">${o.customer_name}</div>
-                    <div class="text-[9px] text-gray-400 mb-2">${date}</div>
-                    <div class="text-[10px] text-gray-600 border-t border-dashed mt-2 pt-2">
-                        ${o.items.map(i => `<div>• ${i.name} (x${i.qty})</div>`).join('')}
-                    </div>
+                    <div class="text-[9px] text-gray-400 mb-2">${o.createdAt?.toDate().toLocaleString() || ""}</div>
+                    <div class="text-[10px] text-gray-600 border-t border-dashed mt-2 pt-2">${o.items.map(i => `<div>• ${i.name} (x${i.qty})</div>`).join('')}</div>
                     <div class="text-right font-bold text-red-600 text-xs mt-1 border-t pt-1">សរុប៖ ${o.total_amount}</div>
                 </div>`;
-            });
-            list.innerHTML = html || "<p class='text-center text-gray-400 italic text-xs py-10'>មិនទាន់មានកុម្ម៉ង់</p>";
+            }).join('') || "<p class='text-center text-gray-400 text-xs py-10'>មិនទាន់មានកុម្ម៉ង់</p>";
         }
-
-        window.searchProduct = (val) => {
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
-            renderProductTable(filtered);
-        };
 
         window.resetForm = () => {
             document.getElementById('edit-id').value = "";
@@ -214,8 +221,8 @@
             document.getElementById('p-img').value = "";
             document.getElementById('p-file').value = "";
             document.getElementById('preview-container').classList.add('hidden');
-            document.getElementById('form-title').innerText = "គ្រប់គ្រងផលិតផល (PV1)";
-            document.getElementById('btn-save').innerText = "រក្សាទុក";
+            document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ";
+            document.getElementById('btn-save').innerText = "រក្សាទុកទិន្នន័យ";
             document.getElementById('btn-cancel').classList.add('hidden');
         };
 
