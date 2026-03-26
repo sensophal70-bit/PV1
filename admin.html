@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - Category & Search</title>
+    <title>Roththa Admin - Supplier Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -47,17 +47,24 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-blue-100">
-                    <h2 id="form-title" class="font-bold text-blue-900 mb-6 flex items-center"><i class="fas fa-edit mr-2"></i> គ្រប់គ្រងទំនិញ</h2>
+                    <h2 id="form-title" class="font-bold text-blue-900 mb-6 flex items-center"><i class="fas fa-edit mr-2"></i> គ្រប់គ្រងទំនិញ & Supplier</h2>
                     <input type="hidden" id="edit-id">
                     <div class="space-y-4">
                         <input type="text" id="p-name" placeholder="ឈ្មោះផលិតផល" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
-                        <select id="p-cat" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm font-bold text-slate-500">
-                            <option value="">-- ជ្រើសរើសប្រភេទផលិតផល --</option>
-                        </select>
+                        <select id="p-cat" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm font-bold text-slate-500"></select>
                         <div class="flex gap-2">
                             <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-1/2 p-3 bg-gray-50 border rounded-xl outline-none text-sm">
                             <input type="number" id="p-stock" placeholder="ស្តុក" class="w-1/2 p-3 bg-gray-50 border rounded-xl outline-none text-sm">
                         </div>
+
+                        <div class="p-4 bg-blue-50 rounded-2xl space-y-2 border border-blue-100">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">ព័ត៌មានអ្នកផ្គត់ផ្គង់ (Supplier)</span>
+                            <input type="text" id="s-name" placeholder="ឈ្មោះអ្នកផ្គត់ផ្គង់" class="w-full p-2.5 bg-white border rounded-lg outline-none text-xs">
+                            <input type="text" id="s-phone" placeholder="លេខទូរសព្ទ" class="w-full p-2.5 bg-white border rounded-lg outline-none text-xs">
+                            <input type="text" id="s-address" placeholder="អាសយដ្ឋាន" class="w-full p-2.5 bg-white border rounded-lg outline-none text-xs">
+                            <textarea id="s-note" placeholder="ផ្សេងៗ..." class="w-full p-2.5 bg-white border rounded-lg outline-none text-xs h-16 no-scrollbar"></textarea>
+                        </div>
+
                         <div class="p-3 bg-gray-50 border border-dashed rounded-xl text-center">
                             <input type="file" id="p-file" accept="image/*" class="text-[10px] text-gray-400">
                             <input type="hidden" id="p-img">
@@ -71,7 +78,7 @@
             </div>
 
             <div class="lg:col-span-8 space-y-8">
-                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[500px]">
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[550px]">
                     <div class="p-5 bg-gray-50 border-b space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-gray-500 uppercase">បញ្ជីទំនិញក្នុងស្តុក</span>
@@ -79,8 +86,8 @@
                         </div>
                         <div class="relative">
                             <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                            <input type="text" id="admin-search" onkeyup="searchProduct()" placeholder="ស្វែងរកឈ្មោះទំនិញ ឬប្រភេទ..." 
-                                class="w-full pl-9 p-2.5 bg-white border border-gray-200 rounded-xl outline-none text-xs focus:ring-2 focus:ring-blue-400 shadow-sm">
+                            <input type="text" id="admin-search" onkeyup="searchProduct()" placeholder="ស្វែងរកឈ្មោះទំនិញ ប្រភេទ ឬអ្នកផ្គត់ផ្គង់..." 
+                                class="w-full pl-9 p-2.5 bg-white border border-gray-200 rounded-xl outline-none text-xs shadow-sm">
                         </div>
                     </div>
                     <div class="overflow-y-auto p-4 no-scrollbar flex-grow">
@@ -89,6 +96,7 @@
                                 <tr>
                                     <th class="pb-2">រូបភាព</th>
                                     <th>ឈ្មោះ & ប្រភេទ</th>
+                                    <th>Supplier</th>
                                     <th class="text-center">ស្តុក</th>
                                     <th class="text-right">តម្លៃ</th>
                                     <th class="text-right">សកម្មភាព</th>
@@ -99,7 +107,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[400px] flex flex-col">
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[350px] flex flex-col">
                     <div class="flex justify-between items-center mb-4 border-b pb-3 text-sm">
                         <h2 class="font-bold text-blue-900 italic">ប្រវត្តិការកម្មង់</h2>
                         <button onclick="exportData('order', 'pdf')" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-[9px] font-bold">PDF REPORT</button>
@@ -107,6 +115,19 @@
                     <div id="order-list" class="space-y-4 overflow-y-auto no-scrollbar pr-1"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="supplier-modal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-xs rounded-[2rem] p-6 shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-blue-600 mb-2 text-lg">
+                    <i class="fas fa-address-book"></i>
+                </div>
+                <h3 class="font-bold text-blue-900">ព័ត៌មានអ្នកផ្គត់ផ្គង់</h3>
+            </div>
+            <div id="modal-content" class="space-y-3 text-xs leading-relaxed"></div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-gray-100 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-colors">បិទ</button>
         </div>
     </div>
 
@@ -149,7 +170,8 @@
             const term = document.getElementById('admin-search').value.toLowerCase();
             const filtered = allProducts.filter(p => 
                 p.name.toLowerCase().includes(term) || 
-                (p.category && p.category.toLowerCase().includes(term))
+                (p.category && p.category.toLowerCase().includes(term)) ||
+                (p.supplier_name && p.supplier_name.toLowerCase().includes(term))
             );
             renderProductList(filtered);
         };
@@ -182,6 +204,11 @@
                 price: parseFloat(document.getElementById('p-price').value),
                 stock: parseInt(document.getElementById('p-stock').value),
                 img: document.getElementById('p-img').value,
+                // Supplier fields
+                supplier_name: document.getElementById('s-name').value,
+                supplier_phone: document.getElementById('s-phone').value,
+                supplier_address: document.getElementById('s-address').value,
+                supplier_note: document.getElementById('s-note').value,
                 updatedAt: serverTimestamp()
             };
             if(!data.name || !data.category) return alert("សូមបំពេញឈ្មោះ និងប្រភេទ!");
@@ -198,12 +225,30 @@
             document.getElementById('p-price').value = p.price;
             document.getElementById('p-stock').value = p.stock || 0;
             document.getElementById('p-img').value = p.img;
+            // Set Supplier fields
+            document.getElementById('s-name').value = p.supplier_name || "";
+            document.getElementById('s-phone').value = p.supplier_phone || "";
+            document.getElementById('s-address').value = p.supplier_address || "";
+            document.getElementById('s-note').value = p.supplier_note || "";
             document.getElementById('form-title').innerText = "កែសម្រួលទំនិញ";
             document.getElementById('btn-cancel').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         window.deleteProduct = async (id) => { if(confirm("លុបទំនិញនេះ?")) { await deleteDoc(doc(db, "products", id)); loadAll(); } };
+
+        // Modal Logic
+        window.viewSupplier = (id) => {
+            const p = allProducts.find(x => x.id === id);
+            document.getElementById('modal-content').innerHTML = `
+                <div class="border-b pb-2"><strong>ឈ្មោះ៖</strong> ${p.supplier_name || '-'}</div>
+                <div class="border-b pb-2"><strong>លេខទូរសព្ទ៖</strong> <a href="tel:${p.supplier_phone}" class="text-blue-600 font-bold">${p.supplier_phone || '-'}</a></div>
+                <div class="border-b pb-2"><strong>អាសយដ្ឋាន៖</strong> ${p.supplier_address || '-'}</div>
+                <div class="bg-gray-50 p-3 rounded-lg mt-2 text-[10px]"><strong>ចំណាំ៖</strong> ${p.supplier_note || '-'}</div>
+            `;
+            document.getElementById('supplier-modal').classList.remove('hidden');
+        };
+        window.closeModal = () => document.getElementById('supplier-modal').classList.add('hidden');
 
         // --- Render Functions ---
         function renderProductList(data) {
@@ -213,6 +258,11 @@
                     <td class="py-2">
                         <div class="font-bold text-slate-700">${p.name}</div>
                         <div class="text-[9px] text-blue-400 font-bold italic">${p.category || 'N/A'}</div>
+                    </td>
+                    <td class="py-2">
+                        <button onclick="viewSupplier('${p.id}')" class="text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-[10px] font-bold">
+                            <i class="fas fa-phone mr-1"></i> ${p.supplier_name || 'ព័ត៌មាន'}
+                        </button>
                     </td>
                     <td class="py-2 text-center text-orange-600 font-bold">${p.stock || 0}</td>
                     <td class="py-2 text-right font-bold text-red-500">$${p.price.toFixed(2)}</td>
@@ -224,7 +274,6 @@
         }
 
         async function loadAll() {
-            // Load Categories
             const cSnap = await getDocs(collection(db, "categories"));
             const catBadges = document.getElementById('cat-badges');
             const catSelect = document.getElementById('p-cat');
@@ -235,12 +284,10 @@
                 catSelect.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
             });
 
-            // Load Products
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
             renderProductList(allProducts);
 
-            // Load Orders
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
             allOrders = oSnap.docs.map(d => ({id: d.id, ...d.data()}));
             document.getElementById('order-list').innerHTML = allOrders.map(o => `
@@ -284,11 +331,14 @@
             pdf.save(target + "_report.pdf");
             renderZone.style.left = "-9999px";
         };
+
         window.resetForm = () => {
             document.getElementById('edit-id').value = ""; document.getElementById('p-name').value = "";
             document.getElementById('p-cat').value = ""; document.getElementById('p-price').value = "";
             document.getElementById('p-stock').value = ""; document.getElementById('p-img').value = "";
-            document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ";
+            document.getElementById('s-name').value = ""; document.getElementById('s-phone').value = "";
+            document.getElementById('s-address').value = ""; document.getElementById('s-note').value = "";
+            document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ & Supplier";
             document.getElementById('btn-cancel').classList.add('hidden');
         };
     </script>
