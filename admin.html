@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - Advanced Dashboard</title>
+    <title>Roththa Admin - Final Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -38,21 +38,21 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-gradient-to-r from-blue-700 to-blue-900 p-6 rounded-[2rem] shadow-xl text-white">
                 <div class="flex justify-between items-center opacity-80 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">ចំណូលសរុប (Total Revenue)</span>
+                    <span class="text-xs font-bold uppercase">ចំណូលសរុប (Revenue)</span>
                     <i class="fas fa-dollar-sign"></i>
                 </div>
                 <div id="total-revenue" class="text-3xl font-bold">$0.00</div>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-blue-100">
                 <div class="flex justify-between items-center text-gray-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">ការកុម្ម៉ង់សរុប</span>
+                    <span class="text-xs font-bold uppercase text-blue-800">ការកុម្ម៉ង់សរុប</span>
                     <i class="fas fa-shopping-cart text-blue-500"></i>
                 </div>
                 <div id="total-orders" class="text-3xl font-bold text-blue-900">0</div>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-orange-100">
                 <div class="flex justify-between items-center text-gray-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">មុខទំនិញក្នុងស្តុក</span>
+                    <span class="text-xs font-bold uppercase text-orange-800">ទំនិញក្នុងស្តុក</span>
                     <i class="fas fa-box text-orange-500"></i>
                 </div>
                 <div id="total-stock-items" class="text-3xl font-bold text-orange-600">0</div>
@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-blue-100">
-                    <h2 id="form-title" class="font-bold text-blue-900 mb-6 flex items-center"><i class="fas fa-edit mr-2"></i> គ្រប់គ្រងទំនិញ</h2>
+                    <h2 id="form-title" class="font-bold text-blue-900 mb-6 flex items-center text-sm"><i class="fas fa-edit mr-2"></i> បន្ថែម/កែទំនិញ</h2>
                     <input type="hidden" id="edit-id">
                     <div class="space-y-4">
                         <input type="text" id="p-name" placeholder="ឈ្មោះផលិតផល" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
@@ -84,7 +84,7 @@
                             <input type="file" id="p-file" accept="image/*" class="text-[10px] text-gray-400">
                             <input type="hidden" id="p-img">
                         </div>
-                        <button id="btn-save" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-md active:scale-95">រក្សាទុក</button>
+                        <button id="btn-save" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-md active:scale-95">រក្សាទុកទិន្នន័យ</button>
                         <button id="btn-cancel" onclick="resetForm()" class="hidden w-full bg-gray-400 text-white py-2 rounded-xl font-bold mt-2">បោះបង់</button>
                     </div>
                 </div>
@@ -93,8 +93,8 @@
             <div class="lg:col-span-8 space-y-8">
                 <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 h-[500px] flex flex-col overflow-hidden">
                     <div class="p-5 bg-gray-50 border-b flex justify-between items-center">
-                        <span class="text-xs font-bold text-gray-500 uppercase">ស្តុកទំនិញ</span>
-                        <button onclick="exportData('product', 'pdf')" class="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-[10px] font-bold italic">EXPORT STOCK PDF</button>
+                        <span class="text-xs font-bold text-gray-500 uppercase">បញ្ជីស្តុក</span>
+                        <button onclick="exportData('product', 'pdf')" class="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-[10px] font-bold">PDF STOCK</button>
                     </div>
                     <div class="overflow-y-auto p-4 no-scrollbar flex-grow">
                         <table class="w-full text-left">
@@ -106,12 +106,15 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[400px] flex flex-col overflow-hidden">
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[450px] flex flex-col overflow-hidden">
                     <div class="flex justify-between items-center mb-4 border-b pb-3">
-                        <h2 class="font-bold text-blue-900 italic">ប្រវត្តិការកម្មង់</h2>
+                        <div class="flex items-center gap-3">
+                            <h2 class="font-bold text-blue-900 italic">ប្រវត្តិការកម្មង់</h2>
+                            <button onclick="deleteAllOrders()" class="bg-red-50 text-red-500 px-3 py-1 rounded-lg text-[9px] font-bold hover:bg-red-500 hover:text-white transition-all">លុបទាំងអស់</button>
+                        </div>
                         <button onclick="exportData('order', 'pdf')" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-bold italic">EXPORT ORDERS PDF</button>
                     </div>
-                    <div id="order-list" class="space-y-4 overflow-y-auto no-scrollbar pr-1 flex-grow"></div>
+                    <div id="order-list" class="space-y-3 overflow-y-auto no-scrollbar pr-1 flex-grow"></div>
                 </div>
             </div>
         </div>
@@ -120,7 +123,7 @@
     <div id="pdf-render-zone" style="position: absolute; left: -9999px; top: 0; width: 800px; background: white;">
         <div id="pdf-content" class="pdf-box">
             <h1 style="text-align: center; color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;" id="pdf-title"></h1>
-            <p style="text-align: right; font-size: 10px; color: #666; margin-top: 5px;">របាយការណ៍បង្កើតនៅ៖ <span id="pdf-date"></span></p>
+            <p style="text-align: right; font-size: 10px; color: #666; margin-top: 5px;">របាយការណ៍នៅ៖ <span id="pdf-date"></span></p>
             <div id="pdf-table-area"></div>
             <div id="pdf-footer-total" style="margin-top: 20px; text-align: right; font-weight: bold; font-size: 14px; color: #d32f2f;"></div>
         </div>
@@ -128,7 +131,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -152,13 +155,11 @@
             } else { alert("លេខកូដខុស!"); }
         };
 
-        // --- Categories ---
         window.addCategory = async () => {
             const name = document.getElementById('cat-name').value;
             if(name) { await addDoc(collection(db, "categories"), { name: name }); document.getElementById('cat-name').value = ""; loadAll(); }
         };
 
-        // --- Products ---
         document.getElementById('p-file').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
@@ -175,6 +176,7 @@
                 img: document.getElementById('p-img').value,
                 updatedAt: serverTimestamp()
             };
+            if(!data.name) return alert("សូមបញ្ចូលឈ្មោះទំនិញ!");
             if(id) await updateDoc(doc(db, "products", id), data);
             else { data.createdAt = serverTimestamp(); await addDoc(collection(db, "products"), data); }
             resetForm(); loadAll();
@@ -192,9 +194,26 @@
             document.getElementById('btn-cancel').classList.remove('hidden');
         };
 
-        // --- LOAD DATA & DASHBOARD ---
+        // --- DELETE FUNCTIONS ---
+        window.deleteOrder = async (id) => {
+            if(confirm("តើអ្នកចង់លុបការកុម្ម៉ង់នេះមែនទេ?")) {
+                await deleteDoc(doc(db, "orders", id));
+                loadAll();
+            }
+        };
+
+        window.deleteAllOrders = async () => {
+            if(confirm("⚠️ ប្រយ័ត្ន! តើអ្នកពិតជាចង់លុបប្រវត្តិការកុម្ម៉ង់ទាំងអស់មែនទេ? វាមិនអាចយកវិញបានឡើយ!")) {
+                const batch = writeBatch(db);
+                const oSnap = await getDocs(collection(db, "orders"));
+                oSnap.forEach((d) => batch.delete(d.ref));
+                await batch.commit();
+                loadAll();
+            }
+        };
+
+        // --- LOAD DATA ---
         async function loadAll() {
-            // Load Categories
             const cSnap = await getDocs(collection(db, "categories"));
             document.getElementById('cat-badges').innerHTML = "";
             document.getElementById('p-cat').innerHTML = `<option value="">ជ្រើសរើសប្រភេទ</option>`;
@@ -203,7 +222,6 @@
                 document.getElementById('p-cat').innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
             });
 
-            // Load Products
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
             document.getElementById('total-stock-items').innerText = allProducts.length;
@@ -211,7 +229,7 @@
                 <tr class="border-b">
                     <td class="py-2"><img src="${p.img}" class="w-8 h-8 rounded border"></td>
                     <td><div class="font-bold">${p.name}</div><div class="text-[9px] text-gray-400">${p.category}</div></td>
-                    <td>${p.stock}</td>
+                    <td class="text-center">${p.stock}</td>
                     <td class="text-right font-bold text-red-500">$${p.price.toFixed(2)}</td>
                     <td class="text-right">
                         <button onclick="editProduct('${p.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
@@ -219,7 +237,6 @@
                     </td>
                 </tr>`).join('');
 
-            // Load Orders
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
             allOrders = oSnap.docs.map(d => ({id: d.id, ...d.data()}));
             
@@ -229,16 +246,21 @@
             document.getElementById('total-orders').innerText = allOrders.length;
 
             document.getElementById('order-list').innerHTML = allOrders.map(o => `
-                <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center shadow-sm relative group">
                     <div>
                         <div class="font-bold text-blue-900 text-[11px]">${o.customer_name}</div>
-                        <div class="text-[9px] text-gray-400">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
+                        <div class="text-[8px] text-gray-400">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
                     </div>
-                    <div class="text-right font-bold text-red-600 text-[11px]">${o.total_amount}</div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right font-bold text-red-600 text-[11px]">${o.total_amount}</div>
+                        <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 transition-colors">
+                            <i class="fas fa-trash-alt text-[10px]"></i>
+                        </button>
+                    </div>
                 </div>`).join('');
         }
 
-        // --- EXPORT PDF (With Time & Qty & Total) ---
+        // --- PDF EXPORT ---
         window.exportData = async (target, format) => {
             const data = (target === 'product') ? allProducts : allOrders;
             const area = document.getElementById('pdf-table-area');
@@ -262,25 +284,22 @@
                         <td style="text-align:right;">$${p.price.toFixed(2)}</td>
                     </tr>`;
                 });
-                grandTotal = 0; // Not applicable for stock
             } else {
-                html += `<th>ថ្ងៃខែ & ម៉ោង</th><th>អតិថិជន</th><th>ព័ត៌មានទំនិញ (Qty)</th><th>តម្លៃសរុប</th></tr></thead><tbody>`;
+                html += `<th>ថ្ងៃខែ & ម៉ោង</th><th>អតិថិជន</th><th>ទំនិញកុម្ម៉ង់ (Qty)</th><th>សរុប ($)</th></tr></thead><tbody>`;
                 data.forEach(o => {
-                    const priceNum = parseFloat(o.total_amount.replace('$', ''));
-                    grandTotal += priceNum;
+                    grandTotal += parseFloat(o.total_amount.replace('$', ''));
                     const itemsHtml = o.items.map(i => `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}`).join('<br>');
-                    
                     html += `<tr>
                         <td style="white-space:nowrap;">${o.createdAt?.toDate().toLocaleString('km-KH')}</td>
                         <td><strong>${o.customer_name}</strong></td>
                         <td style="font-size:9px;">${itemsHtml}</td>
-                        <td style="text-align:right; font-weight:bold; color:#d32f2f;">${o.total_amount}</td>
+                        <td style="text-align:right; font-weight:bold;">${o.total_amount}</td>
                     </tr>`;
                 });
             }
 
             area.innerHTML = html + `</tbody></table>`;
-            footer.innerText = grandTotal > 0 ? `សរុបចំណូលរួម៖ $${grandTotal.toFixed(2)}` : "";
+            footer.innerText = grandTotal > 0 ? `ទឹកប្រាក់ចំណូលសរុបក្នុងរបាយការណ៍៖ $${grandTotal.toFixed(2)}` : "";
 
             renderZone.style.left = "0"; 
             renderZone.style.opacity = "0.01";
@@ -299,7 +318,7 @@
         window.resetForm = () => {
             document.getElementById('edit-id').value = ""; document.getElementById('p-name').value = "";
             document.getElementById('p-price').value = ""; document.getElementById('p-stock').value = "";
-            document.getElementById('p-img').value = ""; document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ";
+            document.getElementById('p-img').value = ""; document.getElementById('form-title').innerText = "បន្ថែម/កែទំនិញ";
             document.getElementById('btn-cancel').classList.add('hidden');
         };
         
