@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - Category Focus</title>
+    <title>Roththa Admin - Category & Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -51,11 +51,9 @@
                     <input type="hidden" id="edit-id">
                     <div class="space-y-4">
                         <input type="text" id="p-name" placeholder="ឈ្មោះផលិតផល" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
-                        
                         <select id="p-cat" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm font-bold text-slate-500">
                             <option value="">-- ជ្រើសរើសប្រភេទផលិតផល --</option>
                         </select>
-
                         <div class="flex gap-2">
                             <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-1/2 p-3 bg-gray-50 border rounded-xl outline-none text-sm">
                             <input type="number" id="p-stock" placeholder="ស្តុក" class="w-1/2 p-3 bg-gray-50 border rounded-xl outline-none text-sm">
@@ -73,12 +71,19 @@
             </div>
 
             <div class="lg:col-span-8 space-y-8">
-                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
-                    <div class="p-5 bg-gray-50 flex justify-between items-center border-b">
-                        <span class="text-xs font-bold text-gray-500 uppercase">បញ្ជីទំនិញក្នុងស្តុក</span>
-                        <button onclick="exportData('product', 'pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-bold">EXPORT PDF</button>
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[500px]">
+                    <div class="p-5 bg-gray-50 border-b space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500 uppercase">បញ្ជីទំនិញក្នុងស្តុក</span>
+                            <button onclick="exportData('product', 'pdf')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-bold">EXPORT PDF</button>
+                        </div>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                            <input type="text" id="admin-search" onkeyup="searchProduct()" placeholder="ស្វែងរកឈ្មោះទំនិញ ឬប្រភេទ..." 
+                                class="w-full pl-9 p-2.5 bg-white border border-gray-200 rounded-xl outline-none text-xs focus:ring-2 focus:ring-blue-400 shadow-sm">
+                        </div>
                     </div>
-                    <div class="overflow-y-auto p-4 no-scrollbar">
+                    <div class="overflow-y-auto p-4 no-scrollbar flex-grow">
                         <table class="w-full text-left">
                             <thead class="text-[10px] text-gray-400 border-b sticky top-0 bg-white">
                                 <tr>
@@ -94,7 +99,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[450px] flex flex-col">
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 h-[400px] flex flex-col">
                     <div class="flex justify-between items-center mb-4 border-b pb-3 text-sm">
                         <h2 class="font-bold text-blue-900 italic">ប្រវត្តិការកម្មង់</h2>
                         <button onclick="exportData('order', 'pdf')" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-[9px] font-bold">PDF REPORT</button>
@@ -139,6 +144,16 @@
             } else { alert("Password មិនត្រឹមត្រូវ!"); }
         };
 
+        // --- Search Logic ---
+        window.searchProduct = () => {
+            const term = document.getElementById('admin-search').value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                (p.category && p.category.toLowerCase().includes(term))
+            );
+            renderProductList(filtered);
+        };
+
         // --- Category Logic ---
         window.addCategory = async () => {
             const name = document.getElementById('cat-name').value;
@@ -152,7 +167,7 @@
             if(confirm("តើអ្នកចង់លុបប្រភេទនេះមែនទេ?")) { await deleteDoc(doc(db, "categories", id)); loadAll(); }
         };
 
-        // --- Product Management ---
+        // --- Product Logic ---
         document.getElementById('p-file').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
@@ -169,8 +184,7 @@
                 img: document.getElementById('p-img').value,
                 updatedAt: serverTimestamp()
             };
-            if(!data.name || !data.category) return alert("សូមបំពេញឈ្មោះ និងជ្រើសរើសប្រភេទផលិតផល!");
-            
+            if(!data.name || !data.category) return alert("សូមបំពេញឈ្មោះ និងប្រភេទ!");
             if(id) await updateDoc(doc(db, "products", id), data);
             else { data.createdAt = serverTimestamp(); await addDoc(collection(db, "products"), data); }
             resetForm(); loadAll();
@@ -191,7 +205,24 @@
 
         window.deleteProduct = async (id) => { if(confirm("លុបទំនិញនេះ?")) { await deleteDoc(doc(db, "products", id)); loadAll(); } };
 
-        // --- Data Display ---
+        // --- Render Functions ---
+        function renderProductList(data) {
+            document.getElementById('product-list').innerHTML = data.map(p => `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="py-2"><img src="${p.img}" class="w-8 h-8 object-cover rounded-lg border"></td>
+                    <td class="py-2">
+                        <div class="font-bold text-slate-700">${p.name}</div>
+                        <div class="text-[9px] text-blue-400 font-bold italic">${p.category || 'N/A'}</div>
+                    </td>
+                    <td class="py-2 text-center text-orange-600 font-bold">${p.stock || 0}</td>
+                    <td class="py-2 text-right font-bold text-red-500">$${p.price.toFixed(2)}</td>
+                    <td class="py-2 text-right">
+                        <button onclick="editProduct('${p.id}')" class="text-blue-400 mr-2"><i class="fas fa-edit text-[10px]"></i></button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="fas fa-trash text-[10px]"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
         async function loadAll() {
             // Load Categories
             const cSnap = await getDocs(collection(db, "categories"));
@@ -200,27 +231,14 @@
             catBadges.innerHTML = "";
             catSelect.innerHTML = `<option value="">-- ជ្រើសរើសប្រភេទផលិតផល --</option>`;
             cSnap.forEach(d => {
-                catBadges.innerHTML += `<span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold border border-orange-200 flex items-center gap-2">${d.data().name} <i onclick="deleteCategory('${d.id}')" class="fas fa-times-circle cursor-pointer opacity-50 hover:opacity-100"></i></span>`;
+                catBadges.innerHTML += `<span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold border border-orange-200 flex items-center gap-2">${d.data().name} <i onclick="deleteCategory('${d.id}')" class="fas fa-times-circle cursor-pointer opacity-50"></i></span>`;
                 catSelect.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
             });
 
             // Load Products
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            document.getElementById('product-list').innerHTML = allProducts.map(p => `
-                <tr class="hover:bg-gray-50 border-b">
-                    <td class="py-2"><img src="${p.img}" class="w-8 h-8 object-cover rounded-lg border"></td>
-                    <td class="py-2">
-                        <div class="font-bold text-slate-700">${p.name}</div>
-                        <div class="text-[9px] text-gray-400 italic font-bold text-blue-400">${p.category || 'N/A'}</div>
-                    </td>
-                    <td class="py-2 text-center text-orange-600 font-bold">${p.stock || 0}</td>
-                    <td class="py-2 text-right font-bold text-red-500">$${p.price.toFixed(2)}</td>
-                    <td class="py-2 text-right">
-                        <button onclick="editProduct('${p.id}')" class="text-blue-400 mr-2"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="fas fa-trash text-[10px]"></i></button>
-                    </td>
-                </tr>`).join('');
+            renderProductList(allProducts);
 
             // Load Orders
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
@@ -238,7 +256,6 @@
                 </div>`).join('');
         }
 
-        // --- PDF Generation ---
         window.exportData = async (target, format) => {
             const data = (target === 'product') ? allProducts : allOrders;
             const area = document.getElementById('pdf-table-area');
