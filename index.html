@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Professional UI</title>
+    <title>Roththa Shop - Full Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -11,77 +11,48 @@
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
         body { font-family: 'Hanuman', serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* ១. ចលនាពង្រីករូបភាពឱ្យធំខ្លាំង (Extreme Image Zoom) */
-        .product-card { transition: all 0.3s ease; }
-        .product-img-container { overflow: hidden; position: relative; }
-        .product-img-container img { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        
-        /* ពេលប៉ះលើ Card ឱ្យរូបភាពរីកធំ */
-        .product-card:active .product-img-container img {
-            transform: scale(1.3); 
-            z-index: 10;
-        }
-
-        /* ២. ចលនាប៊ូតុង "បន្ថែម" (Button Animation & Color) */
-        .btn-add {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-add:active {
-            transform: scale(0.85); /* រួញតូចខ្លាំង */
-            background-color: #facc15 !important; /* ពណ៌លឿងទុំ */
-            color: #1e3a8a !important;
-        }
-
-        /* Modal Animation */
-        .modal-up { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
+        .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
         .modal-up.active { transform: translateY(0); }
-        .active-cat { background-color: #1e40af !important; color: white !important; shadow: 0 4px 10px rgba(30,64,175,0.3); }
+        .active-cat { background-color: #1e40af !important; color: white !important; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="pb-32">
 
-    <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
-
-    <div class="bg-blue-800 p-6 rounded-b-[2.5rem] shadow-2xl sticky top-0 z-30 text-white border-b-4 border-yellow-500">
+    <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-bold italic tracking-tighter">ROTHTHA SHOP</h1>
-            <button onclick="toggleHistoryModal()" class="bg-white/10 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/20 active:scale-90 transition-all">
+            <h1 class="text-lg font-bold italic uppercase">Roththa Shop</h1>
+            <button onclick="toggleHistoryModal()" class="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/30">
                 <i class="fas fa-history mr-1"></i> ប្រវត្តិ
             </button>
         </div>
-        <div class="relative">
-            <input type="text" id="search-box" onkeyup="filterProducts()" placeholder="ស្វែងរកសម្ភារៈសំណង់..." class="w-full p-3.5 rounded-2xl border-none outline-none text-[12px] text-gray-800 shadow-inner">
-        </div>
+        <input type="text" id="search-box" onkeyup="filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800 shadow-inner">
     </div>
 
-    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[155px] z-20">
-        <button onclick="filterByCategory('All')" class="cat-btn active-cat whitespace-nowrap px-6 py-2.5 bg-gray-100 text-gray-500 rounded-full text-[11px] font-bold border shadow-sm">ទាំងអស់</button>
+    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20">
+        <button onclick="filterByCategory('All')" class="cat-btn active-cat whitespace-nowrap px-6 py-2 bg-gray-100 text-gray-500 rounded-full text-[10px] font-bold border">ទាំងអស់</button>
     </div>
 
     <div class="px-3 mt-4">
-        <div id="product-grid" class="grid grid-cols-3 gap-3 pb-10"></div>
+        <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10"></div>
     </div>
 
-    <div id="cart-bar" onclick="toggleCartModal()" class="fixed bottom-8 left-6 right-6 bg-blue-900 text-white p-4 rounded-[2rem] shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
+    <div id="cart-bar" onclick="toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
         <div class="flex items-center gap-3">
             <span id="cart-count" class="bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
-            <div id="cart-total-bar" class="font-bold text-sm tracking-tight">$0.00</div>
+            <div id="cart-total-bar" class="font-bold text-sm">$0.00</div>
         </div>
-        <div class="text-[10px] font-bold uppercase tracking-widest italic flex items-center gap-2">កន្ត្រក <i class="fas fa-arrow-right"></i></div>
+        <div class="text-[9px] font-bold uppercase tracking-widest">មើលកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
     </div>
 
-    <div id="overlay" class="fixed inset-0 bg-black/70 z-50 hidden opacity-0 transition-opacity" onclick="toggleCartModal()"></div>
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="toggleCartModal()"></div>
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[85vh] flex flex-col">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase border-b pb-2 tracking-widest">កន្ត្រកទំនិញ</h2>
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase border-b pb-2">កន្ត្រកទំនិញ</h2>
         <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
         <div class="mt-4 pt-4 border-t space-y-4">
             <div class="flex justify-between items-center px-1 font-bold italic">
-                <span class="text-gray-400 text-[10px] uppercase">សរុបការទូទាត់</span>
+                <span class="text-gray-400 text-[10px] uppercase tracking-tighter">សរុបការទូទាត់</span>
                 <span id="modal-total-price" class="text-red-600 text-2xl font-bold">$0.00</span>
             </div>
             <button onclick="checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg flex justify-center items-center gap-2 active:bg-blue-900">
@@ -92,7 +63,7 @@
 
     <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="toggleHistoryModal()"></div>
     <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
         <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar"></div>
         <button onclick="clearHistory()" class="text-center text-red-400 text-[10px] underline my-4">សម្អាតប្រវត្តិ</button>
     </div>
@@ -117,12 +88,13 @@
 
         let allProducts = [], cart = [];
 
+        // --- Core Functions ---
         async function init() {
             try {
                 const cSnap = await getDocs(collection(db, "categories"));
                 const catList = document.getElementById('cat-list');
                 cSnap.forEach(d => {
-                    catList.innerHTML += `<button onclick="filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[11px] font-bold border transition-all">${d.data().name}</button>`;
+                    catList.innerHTML += `<button onclick="filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm transition-all">${d.data().name}</button>`;
                 });
 
                 const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
@@ -133,24 +105,16 @@
 
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="product-card bg-white p-2.5 rounded-[1.5rem] shadow-sm border border-gray-100 flex flex-col items-center text-center">
-                    <div class="product-img-container rounded-2xl mb-2 w-full aspect-square border-2 border-gray-50">
-                        <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                    <h3 class="font-bold text-gray-800 text-[10px] line-clamp-2 h-7 leading-tight mb-1">${p.name}</h3>
-                    <div class="text-red-600 font-extrabold text-[11px] mb-2">$${p.price.toFixed(2)}</div>
-                    <button onclick="addToCart('${p.id}')" class="btn-add w-full bg-blue-600 text-white py-2 rounded-xl text-[10px] font-bold shadow-md">
-                        បន្ថែម
-                    </button>
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <img src="${p.img}" class="w-full h-16 object-cover rounded-lg mb-1.5 border" onerror="this.src='https://via.placeholder.com/150'">
+                    <h3 class="font-bold text-gray-800 text-[9px] line-clamp-2 h-7 leading-tight">${p.name}</h3>
+                    <div class="text-red-600 font-bold text-[10px] my-1">$${p.price.toFixed(2)}</div>
+                    <button onclick="addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold active:bg-blue-800 transition-all">បន្ថែម</button>
                 </div>`).join('');
         }
 
+        // --- Cart Logic (ភ្ជាប់ទៅកាន់ window ទាំងអស់) ---
         window.addToCart = (id) => {
-            // លេងសម្លេង Click
-            const sound = document.getElementById('click-sound');
-            sound.currentTime = 0;
-            sound.play();
-
             const p = allProducts.find(i => i.id === id);
             const found = cart.find(i => i.id === id);
             if(found) found.qty++; else cart.push({...p, qty: 1});
@@ -174,8 +138,9 @@
             }
         };
 
+        // ប៊ូតុងលុបដែលជួសជុលរួច
         window.removeFromCart = (id) => {
-            if(confirm("លុបទំនិញនេះ?")) {
+            if(confirm("តើអ្នកចង់លុបទំនិញនេះមែនទេ?")) {
                 cart = cart.filter(i => i.id !== id);
                 updateCartUI();
             }
@@ -184,27 +149,36 @@
         function updateCartUI() {
             const count = cart.reduce((s, i) => s + i.qty, 0);
             const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+            
+            if(count === 0) {
+                document.getElementById('cart-bar').classList.add('hidden');
+                document.getElementById('cart-modal').classList.remove('active');
+                document.getElementById('overlay').classList.add('hidden');
+            } else {
+                document.getElementById('cart-bar').classList.remove('hidden');
+            }
+
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
             document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
             
             document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                    <img src="${item.img}" class="w-12 h-12 object-cover rounded-xl border">
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-200">
+                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg border">
                     <div class="flex-grow">
-                        <div class="font-bold text-gray-800 text-[10px]">${item.name}</div>
+                        <div class="font-bold text-gray-800 text-[10px] line-clamp-1">${item.name}</div>
                         <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="flex items-center bg-white px-2 py-1 rounded-full border shadow-sm">
-                            <button onclick="changeQty('${item.id}', -1)" class="text-gray-300 px-2 text-xs"><i class="fas fa-minus"></i></button>
+                            <button onclick="changeQty('${item.id}', -1)" class="text-gray-300 px-2 text-[10px]"><i class="fas fa-minus"></i></button>
                             <input type="number" inputmode="numeric" value="${item.qty}" 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                    onchange="updateManualQty('${item.id}', this.value)" 
-                                   class="w-7 text-center font-bold text-[11px] text-blue-900 border-none outline-none p-0 bg-transparent">
-                            <button onclick="changeQty('${item.id}', 1)" class="text-blue-500 px-2 text-xs"><i class="fas fa-plus"></i></button>
+                                   class="w-7 text-center font-bold text-[10px] text-blue-900 border-none outline-none p-0 bg-transparent">
+                            <button onclick="changeQty('${item.id}', 1)" class="text-blue-500 px-2 text-[10px]"><i class="fas fa-plus"></i></button>
                         </div>
-                        <button onclick="removeFromCart('${item.id}')" class="w-9 h-9 bg-red-100 text-red-500 rounded-full flex items-center justify-center active:scale-90 transition-all border border-red-200">
+                        <button onclick="removeFromCart('${item.id}')" class="w-9 h-9 bg-red-100 text-red-600 rounded-full flex items-center justify-center active:scale-90 transition-all border border-red-200">
                             <i class="fas fa-trash-alt text-[10px]"></i>
                         </button>
                     </div>
@@ -213,7 +187,11 @@
 
         window.checkout = async () => {
             const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            const message = `🏗 *ការកុម្ម៉ង់ថ្មីពី Roththa Shop*\n💰 *សរុប: $${total.toFixed(2)}*\n\n` + cart.map(i => `• ${i.name} (x${i.qty})`).join('\n');
+            const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+            history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
+            localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
+
+            const message = `🏗 *ការកុម្ម៉ង់ថ្មី*\n💰 *សរុប: $${total.toFixed(2)}*\n\n` + cart.map(i => `• ${i.name} (x${i.qty})`).join('\n');
             await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
@@ -222,7 +200,21 @@
         };
 
         window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
-        window.toggleHistoryModal = () => { document.getElementById('history-modal').classList.toggle('active'); document.getElementById('history-overlay').classList.toggle('hidden'); };
+        window.toggleHistoryModal = () => {
+            const m = document.getElementById('history-modal');
+            const o = document.getElementById('history-overlay');
+            m.classList.toggle('active'); o.classList.toggle('hidden');
+            if(m.classList.contains('active')) {
+                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
+                document.getElementById('customer-history-list').innerHTML = h.map(o => `
+                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] shadow-sm">
+                        <div class="flex justify-between font-bold text-blue-800 mb-1"><span>${o.date}</span><span class="text-red-600">$${o.total.toFixed(2)}</span></div>
+                        <div class="text-gray-500">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
+                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>គ្មានប្រវត្តិ</p>";
+            }
+        };
+
+        window.clearHistory = () => { if(confirm("លុប?")) { localStorage.removeItem('my_orders'); toggleHistoryModal(); } };
         window.filterByCategory = (cat) => { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); event.target.classList.add('active-cat'); renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat)); };
         window.filterProducts = () => { const v = document.getElementById('search-box').value.toLowerCase(); renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v))); };
         
