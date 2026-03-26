@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - Full Supplier & Sales</title>
+    <title>Roththa Admin - Dashboard & Back Button</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -14,7 +14,7 @@
         .hidden-panel { display: none; }
         .no-scrollbar::-webkit-scrollbar { width: 4px; }
         .no-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .pdf-box { font-family: 'Hanuman', serif !important; padding: 30px; background: white; color: black; }
+        .pdf-box { font-family: 'Hanuman', serif !important; padding: 30px; background: white; color: black; position: relative; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .pdf-table th { background-color: #1e40af; color: white; border: 1px solid #1e3a8a; padding: 10px; font-size: 11px; }
         .pdf-table td { border: 1px solid #ddd; padding: 8px; font-size: 10px; vertical-align: middle; }
@@ -142,12 +142,27 @@
         </div>
     </div>
 
-    <div id="pdf-render-zone" style="position: absolute; left: -9999px; top: 0; width: 800px; background: white;">
-        <div id="pdf-content" class="pdf-box">
-            <h1 style="text-align: center; color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;" id="pdf-title"></h1>
-            <p style="text-align: right; font-size: 10px; color: #666; margin-top: 5px;">របាយការណ៍នៅ៖ <span id="pdf-date"></span></p>
-            <div id="pdf-table-area"></div>
-            <div id="pdf-footer-total" style="margin-top: 20px; text-align: right; font-weight: bold; font-size: 14px; color: #d32f2f;"></div>
+    <div id="pdf-overlay" class="fixed inset-0 bg-white z-[100] hidden overflow-y-auto p-4 md:p-10">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 bg-gray-50 p-4 rounded-2xl border sticky top-0 z-10">
+                <button onclick="closePDFPreview()" class="flex items-center gap-2 text-blue-600 font-bold text-sm bg-white px-4 py-2 rounded-xl shadow-sm border border-blue-100 active:scale-95 transition-all">
+                    <i class="fas fa-arrow-left"></i> ត្រឡប់ទៅ Dashboard
+                </button>
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">PDF Preview Mode</span>
+            </div>
+
+            <div id="pdf-content" class="pdf-box shadow-2xl border border-gray-100 rounded-lg">
+                <h1 style="text-align: center; color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; font-size: 20px;" id="pdf-title"></h1>
+                <p style="text-align: right; font-size: 10px; color: #666; margin-top: 10px;">របាយការណ៍បង្កើតនៅ៖ <span id="pdf-date"></span></p>
+                <div id="pdf-table-area"></div>
+                <div id="pdf-footer-total" style="margin-top: 25px; text-align: right; font-weight: bold; font-size: 16px; color: #d32f2f; border-top: 1px dashed #ccc; padding-top: 10px;"></div>
+            </div>
+            
+            <div class="text-center mt-8 pb-10">
+                <button id="btn-final-download" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg flex items-center gap-2 mx-auto active:scale-95">
+                    <i class="fas fa-file-pdf"></i> ទាញយកឯកសារ (Download PDF)
+                </button>
+            </div>
         </div>
     </div>
 
@@ -196,7 +211,6 @@
                 price: parseFloat(document.getElementById('p-price').value),
                 stock: parseInt(document.getElementById('p-stock').value),
                 img: document.getElementById('p-img').value,
-                // Supplier Data
                 supplier_name: document.getElementById('s-name').value,
                 supplier_phone: document.getElementById('s-phone').value,
                 supplier_address: document.getElementById('s-address').value,
@@ -217,12 +231,10 @@
             document.getElementById('p-price').value = p.price;
             document.getElementById('p-stock').value = p.stock;
             document.getElementById('p-img').value = p.img;
-            // Set Supplier
             document.getElementById('s-name').value = p.supplier_name || "";
             document.getElementById('s-phone').value = p.supplier_phone || "";
             document.getElementById('s-address').value = p.supplier_address || "";
             document.getElementById('s-note').value = p.supplier_note || "";
-            
             document.getElementById('form-title').innerText = "កែសម្រួលទំនិញ";
             document.getElementById('btn-cancel').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -232,7 +244,7 @@
             const p = allProducts.find(x => x.id === id);
             document.getElementById('modal-content').innerHTML = `
                 <div class="border-b pb-2 text-[11px]"><strong>ឈ្មោះ៖</strong> ${p.supplier_name || '-'}</div>
-                <div class="border-b pb-2 text-[11px]"><strong>លេខទូរសព្ទ៖</strong> <a href="tel:${p.supplier_phone}" class="text-blue-600 font-bold">${p.supplier_phone || '-'}</a></div>
+                <div class="border-b pb-2 text-[11px]"><strong>លេខទូរសព្ទ៖</strong> ${p.supplier_phone || '-'}</div>
                 <div class="border-b pb-2 text-[11px]"><strong>អាសយដ្ឋាន៖</strong> ${p.supplier_address || '-'}</div>
                 <div class="bg-gray-50 p-3 rounded-lg mt-2 text-[10px]"><strong>ចំណាំ៖</strong> ${p.supplier_note || '-'}</div>
             `;
@@ -253,9 +265,7 @@
             }
         };
 
-        // --- LOAD ALL ---
         async function loadAll() {
-            // Categories
             const cSnap = await getDocs(collection(db, "categories"));
             document.getElementById('cat-badges').innerHTML = "";
             document.getElementById('p-cat').innerHTML = `<option value="">ជ្រើសរើសប្រភេទ</option>`;
@@ -264,24 +274,22 @@
                 document.getElementById('p-cat').innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
             });
 
-            // Products
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
             document.getElementById('total-stock-items').innerText = allProducts.length;
             document.getElementById('product-list').innerHTML = allProducts.map(p => `
-                <tr class="border-b">
-                    <td class="py-2"><img src="${p.img}" class="w-8 h-8 rounded border"></td>
-                    <td><div class="font-bold">${p.name}</div><div class="text-[9px] text-gray-400 italic">${p.category}</div></td>
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-2"><img src="${p.img}" class="w-8 h-8 rounded border object-cover"></td>
+                    <td><div class="font-bold text-gray-800">${p.name}</div><div class="text-[9px] text-gray-400 italic">${p.category}</div></td>
                     <td><button onclick="viewSupplier('${p.id}')" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-[9px] font-bold underline">Supplier</button></td>
                     <td class="text-center font-bold text-orange-600">${p.stock}</td>
                     <td class="text-right font-bold text-red-500">$${p.price.toFixed(2)}</td>
                     <td class="text-right">
-                        <button onclick="editProduct('${p.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteDoc(doc(db,'products','${p.id}')).then(loadAll)" class="text-gray-300"><i class="fas fa-trash"></i></button>
+                        <button onclick="editProduct('${p.id}')" class="text-blue-400 mr-2"><i class="fas fa-edit text-xs"></i></button>
+                        <button onclick="deleteDoc(doc(db,'products','${p.id}')).then(loadAll)" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash text-xs"></i></button>
                     </td>
                 </tr>`).join('');
 
-            // Orders
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
             allOrders = oSnap.docs.map(d => ({id: d.id, ...d.data()}));
             
@@ -298,19 +306,24 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="text-right font-bold text-red-600 text-[11px]">${o.total_amount}</div>
-                        <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                        <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt text-[10px]"></i></button>
                     </div>
                 </div>`).join('');
         }
 
-        // --- PDF EXPORT ---
+        // --- NEW PDF NAVIGATION ---
+        window.closePDFPreview = () => {
+            document.getElementById('pdf-overlay').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Re-enable scroll
+        };
+
         window.exportData = async (target, format) => {
             const data = (target === 'product') ? allProducts : allOrders;
             const area = document.getElementById('pdf-table-area');
             const footer = document.getElementById('pdf-footer-total');
-            const renderZone = document.getElementById('pdf-render-zone');
+            const overlay = document.getElementById('pdf-overlay');
             
-            document.getElementById('pdf-title').innerText = target === 'product' ? "របាយការណ៍ស្តុកទំនិញ & Supplier" : "របាយការណ៍លក់លម្អិត (ជាមួយពេលវេលា)";
+            document.getElementById('pdf-title').innerText = target === 'product' ? "របាយការណ៍ស្តុកទំនិញ & Supplier" : "របាយការណ៍លក់លម្អិត";
             document.getElementById('pdf-date').innerText = new Date().toLocaleString('km-KH');
 
             let html = `<table class="pdf-table"><thead><tr>`;
@@ -333,7 +346,7 @@
                     grandTotal += parseFloat(o.total_amount.replace('$', ''));
                     const itemsHtml = o.items.map(i => `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}`).join('<br>');
                     html += `<tr>
-                        <td>${o.createdAt?.toDate().toLocaleString('km-KH')}</td>
+                        <td style="white-space:nowrap;">${o.createdAt?.toDate().toLocaleString('km-KH')}</td>
                         <td><strong>${o.customer_name}</strong></td>
                         <td style="font-size:9px;">${itemsHtml}</td>
                         <td style="text-align:right; font-weight:bold;">${o.total_amount}</td>
@@ -342,29 +355,27 @@
             }
 
             area.innerHTML = html + `</tbody></table>`;
-            footer.innerText = grandTotal > 0 ? `សរុបចំណូលក្នុងរបាយការណ៍៖ $${grandTotal.toFixed(2)}` : "";
+            footer.innerText = grandTotal > 0 ? `សរុបទឹកប្រាក់ចំណូល៖ $${grandTotal.toFixed(2)}` : "";
 
-            renderZone.style.left = "0"; 
-            renderZone.style.opacity = "0.01";
-            await document.fonts.ready;
-            
-            const imgs = area.getElementsByTagName('img');
-            await Promise.all(Array.from(imgs).map(img => img.complete ? Promise.resolve() : new Promise(res => img.onload = res)));
+            // Show Preview Overlay
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Stop background scroll
 
-            const canvas = await html2canvas(document.getElementById('pdf-content'), { scale: 2, useCORS: true });
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(target + "_report_" + new Date().getTime() + ".pdf");
-            renderZone.style.left = "-9999px";
+            // Final Download Trigger
+            document.getElementById('btn-final-download').onclick = async () => {
+                const canvas = await html2canvas(document.getElementById('pdf-content'), { scale: 2, useCORS: true });
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+                pdf.save(target + "_report_" + new Date().getTime() + ".pdf");
+            };
         };
 
         window.resetForm = () => {
             document.getElementById('edit-id').value = ""; document.getElementById('p-name').value = "";
             document.getElementById('p-price').value = ""; document.getElementById('p-stock').value = "";
-            document.getElementById('p-img').value = ""; 
-            document.getElementById('s-name').value = ""; document.getElementById('s-phone').value = "";
-            document.getElementById('s-address').value = ""; document.getElementById('s-note').value = "";
-            document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ & Supplier";
+            document.getElementById('p-img').value = ""; document.getElementById('s-name').value = "";
+            document.getElementById('s-phone').value = ""; document.getElementById('s-address').value = "";
+            document.getElementById('s-note').value = ""; document.getElementById('form-title').innerText = "គ្រប់គ្រងទំនិញ & Supplier";
             document.getElementById('btn-cancel').classList.add('hidden');
         };
         
