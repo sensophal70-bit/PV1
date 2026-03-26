@@ -3,82 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Online Shop - Customer</title>
+    <title>Roththa Shop - 3 Columns</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f8fafc; }
+        body { font-family: 'Hanuman', serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
+        .modal-up.active { transform: translateY(0); }
+        .active-cat { background-color: #1e40af !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .active-tab { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; }
+        /* កំណត់ឱ្យអក្សរឈ្មោះទំនិញបង្ហាញត្រឹម ២ ជួរ */
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
-    <header class="bg-blue-700 text-white p-5 sticky top-0 z-40 shadow-lg rounded-b-[2rem]">
-        <div class="flex justify-between items-center max-w-4xl mx-auto">
+    <div class="bg-blue-800 p-6 rounded-b-[2.5rem] shadow-lg sticky top-0 z-30">
+        <div class="flex justify-between items-center mb-4 text-white">
             <div>
-                <h1 class="text-xl font-bold italic tracking-wider">ROTHTHA SHOP</h1>
-                <p class="text-[10px] opacity-80 italic uppercase text-blue-100">Construction & Materials</p>
+                <h1 class="text-lg font-bold">Roththa Shop</h1>
+                <p class="text-[9px] opacity-80">Tel: 076 999 1686</p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="showHistory()" class="bg-white/20 p-3 rounded-2xl">
-                    <i class="fas fa-history text-lg"></i>
-                </button>
-                <button onclick="toggleCart()" class="relative bg-white/20 p-3 rounded-2xl">
-                    <i class="fas fa-shopping-basket text-lg"></i>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-[9px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
-                </button>
-            </div>
+            <button onclick="toggleHistoryModal()" class="bg-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/30">
+                <i class="fas fa-history mr-1"></i> ប្រវត្តិ
+            </button>
         </div>
-    </header>
-
-    <div class="flex justify-around bg-white border-b sticky top-[84px] z-30 max-w-4xl mx-auto italic text-sm font-bold">
-        <button id="tab-shop" onclick="switchView('shop')" class="py-3 px-6 active-tab">ហាងទំនិញ</button>
-        <button id="tab-history" onclick="switchView('history')" class="py-3 px-6 text-gray-400">ប្រវត្តិកម្មង់</button>
-    </div>
-
-    <div id="view-shop" class="max-w-4xl mx-auto">
-        <div id="cat-nav" class="flex gap-2 overflow-x-auto p-4 no-scrollbar">
-            <button onclick="filterCat('All')" class="bg-blue-600 text-white px-5 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap shadow-md">ទាំងអស់</button>
-        </div>
-        <main class="p-4 grid grid-cols-2 md:grid-cols-3 gap-4" id="product-grid"></main>
-    </div>
-
-    <div id="view-history" class="hidden max-w-2xl mx-auto p-6 animate-fade-in">
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-blue-50 mb-6">
-            <h2 class="font-bold text-blue-900 mb-4 text-center italic">ពិនិត្យប្រវត្តិការកុម្ម៉ង់</h2>
-            <div class="flex gap-2">
-                <input type="text" id="search-history-name" placeholder="បញ្ចូលឈ្មោះដែលអ្នកធ្លាប់កុម្ម៉ង់..." class="flex-grow p-4 bg-gray-50 border rounded-2xl outline-none text-sm italic font-bold">
-                <button onclick="fetchCustomerHistory()" class="bg-blue-700 text-white px-6 rounded-2xl font-bold shadow-lg active:scale-90"><i class="fas fa-search"></i></button>
-            </div>
-        </div>
-        <div id="history-results" class="space-y-4">
-            <div class="text-center text-gray-400 py-10 italic text-xs">សូមបញ្ចូលឈ្មោះដើម្បីស្វែងរក...</div>
+        <div class="relative">
+            <i class="fas fa-search absolute left-4 top-3.5 text-gray-400 text-xs"></i>
+            <input type="text" id="search-box" onkeyup="filterProducts()" placeholder="ស្វែងរកផលិតផល..." 
+                class="w-full pl-10 p-3 rounded-2xl border-none outline-none text-xs shadow-inner">
         </div>
     </div>
 
-    <div id="cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="font-bold text-blue-900 text-lg italic">កន្ត្រកទំនិញរបស់អ្នក</h2>
-                <button onclick="toggleCart()" class="text-gray-300 text-xl"><i class="fas fa-times-circle"></i></button>
+    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar">
+        <button onclick="filterByCategory('All')" id="cat-all" class="cat-btn active-cat whitespace-nowrap px-5 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold shadow-sm border border-gray-100 transition-all">ទាំងអស់</button>
+    </div>
+
+    <div class="px-3">
+        <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10">
             </div>
-            <div id="cart-items" class="space-y-4 max-h-[40vh] overflow-y-auto no-scrollbar"></div>
-            <div class="mt-6 border-t pt-4 space-y-4">
-                <input type="text" id="cust-name" placeholder="សូមបញ្ចូលឈ្មោះរបស់អ្នក..." class="w-full p-4 bg-gray-50 border rounded-2xl outline-none text-sm font-bold italic">
-                <div class="flex justify-between items-center font-bold text-xl text-blue-900">
-                    <span>សរុប៖</span>
-                    <span id="cart-total">$0.00</span>
-                </div>
-                <button onclick="checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 italic">បញ្ជាក់ការកុម្ម៉ង់</button>
+    </div>
+
+    <div id="cart-bar" onclick="toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden cursor-pointer z-40 animate-bounce-short">
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <i class="fas fa-shopping-basket text-lg"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow">0</span>
             </div>
+            <div id="cart-total-bar" class="font-bold text-xs">$0.00</div>
         </div>
+        <div class="text-[9px] bg-white/20 px-3 py-1 rounded-full font-bold uppercase">ពិនិត្យកន្ត្រក</div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="toggleCartModal()"></div>
+    <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[80vh] flex flex-col">
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase italic border-b pb-2">កន្ត្រកទំនិញរបស់អ្នក</h2>
+        <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar"></div>
+        <div class="mt-6 pt-4 border-t space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <span class="font-bold text-gray-400 text-xs uppercase">សរុបការទូទាត់</span>
+                <span id="modal-total-price" class="text-red-600 font-bold text-xl">$0.00</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg flex justify-center items-center gap-2 active:scale-95 transition-all italic">
+                <i class="fab fa-telegram-plane"></i> ផ្ញើការកម្មង់ទៅ Telegram
+            </button>
+        </div>
+    </div>
+
+    <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="toggleHistoryModal()"></div>
+    <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase italic">ប្រវត្តិការកុម្ម៉ង់</h2>
+        <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar pb-4"></div>
+        <button onclick="clearHistory()" class="text-center text-red-400 text-[10px] underline">សម្អាតប្រវត្តិ</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -91,145 +96,136 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        let products = [], cart = [];
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        async function init() {
-            // Categories
-            const cSnap = await getDocs(collection(db, "categories"));
-            cSnap.forEach(d => {
-                document.getElementById('cat-nav').innerHTML += `<button onclick="filterCat('${d.data().name}')" class="bg-white text-gray-500 border border-gray-100 px-5 py-2 rounded-xl text-[11px] font-bold shadow-sm whitespace-nowrap">${d.data().name}</button>`;
-            });
+        let allProducts = [];
+        let cart = [];
 
-            // Products
-            const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-            products = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            renderProducts(products);
+        async function loadAppData() {
+            try {
+                // Load Categories
+                const cSnap = await getDocs(collection(db, "categories"));
+                const catList = document.getElementById('cat-list');
+                cSnap.forEach(d => {
+                    catList.innerHTML += `<button onclick="filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-5 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border border-gray-100 shadow-sm transition-all">${d.data().name}</button>`;
+                });
+
+                // Load Products
+                const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+                pSnap.forEach(d => allProducts.push({id: d.id, ...d.data()}));
+                renderProducts(allProducts);
+            } catch (e) { console.error("Load Error:", e); }
         }
 
-        function renderProducts(data) {
-            document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-50 flex flex-col">
-                    <div class="h-32 bg-gray-100"><img src="${p.img}" class="w-full h-full object-cover"></div>
-                    <div class="p-3">
-                        <h3 class="font-bold text-gray-800 text-[11px] line-clamp-1">${p.name}</h3>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-red-600 font-bold text-xs">$${p.price.toFixed(2)}</span>
-                            <button onclick="addToCart('${p.id}')" class="bg-blue-50 text-blue-600 w-8 h-8 rounded-xl active:scale-90"><i class="fas fa-plus text-[10px]"></i></button>
-                        </div>
-                    </div>
-                </div>`).join('');
-        }
-
-        window.switchView = (view) => {
-            const tabs = ['shop', 'history'];
-            tabs.forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).classList.remove('active-tab');
-                document.getElementById(`tab-${t}`).classList.add('text-gray-400');
-            });
-            document.getElementById(`view-${view}`).classList.remove('hidden');
-            document.getElementById(`tab-${view}`).classList.add('active-tab');
-        };
-
-        window.fetchCustomerHistory = async () => {
-            const name = document.getElementById('search-history-name').value.trim();
-            if(!name) return alert("សូមបញ្ចូលឈ្មោះ!");
-            
-            const resultsDiv = document.getElementById('history-results');
-            resultsDiv.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-blue-600"></i> កំពុងទាញទិន្នន័យ...</div>`;
-
-            const q = query(collection(db, "orders"), where("customer_name", "==", name), orderBy("createdAt", "desc"));
-            const snap = await getDocs(q);
-            
-            if(snap.empty) {
-                resultsDiv.innerHTML = `<div class="bg-orange-50 text-orange-600 p-6 rounded-2xl text-center text-xs italic border border-orange-100">មិនមានប្រវត្តិសម្រាប់ឈ្មោះ "${name}" ទេ!</div>`;
+        window.renderProducts = (data) => {
+            const grid = document.getElementById('product-grid');
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-400 text-[10px] italic">មិនមានផលិតផល...</div>`;
                 return;
             }
-
-            resultsDiv.innerHTML = snap.docs.map(d => {
-                const o = d.data();
-                const date = o.createdAt?.toDate().toLocaleString('km-KH');
-                return `
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-blue-100 animate-slide-up">
-                    <div class="flex justify-between items-start border-b border-dashed pb-3 mb-3">
-                        <div>
-                            <div class="text-[9px] text-gray-400">${date}</div>
-                            <div class="font-bold text-blue-900 text-sm">វិក្កយបត្រ៖ #${d.id.slice(0,5).toUpperCase()}</div>
-                        </div>
-                        <div class="text-red-600 font-bold text-sm">${o.total_amount}</div>
-                    </div>
-                    <div class="space-y-2">
-                        ${o.items.map(i => `
-                            <div class="flex justify-between text-[10px] text-gray-600 italic">
-                                <span>${i.name} (x${i.qty})</span>
-                                <span>$${(i.qty * i.price).toFixed(2)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="mt-4 bg-green-50 text-green-600 p-2 rounded-xl text-center text-[9px] font-bold italic">កម្មង់បានជោគជ័យ</div>
-                </div>`;
-            }).join('');
+            grid.innerHTML = data.map(p => `
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center animate-fade-in transition-all active:scale-95">
+                    <img src="${p.img}" class="w-full h-16 object-cover rounded-xl mb-1.5 shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 text-[9px] text-center h-7 overflow-hidden leading-tight line-clamp-2">${p.name}</h3>
+                    <div class="text-red-600 font-extrabold text-[10px] my-1">$${p.price.toFixed(2)}</div>
+                    <button onclick="addToCart('${p.id}')" class="w-full bg-blue-50 text-blue-700 py-1.5 rounded-lg text-[9px] font-bold active:bg-blue-700 active:text-white transition-all">បន្ថែម</button>
+                </div>`).join('');
         };
 
-        // Cart Logic
         window.addToCart = (id) => {
-            const p = products.find(x => x.id === id);
-            const item = cart.find(x => x.id === id);
-            if(item) item.qty++; else cart.push({...p, qty: 1});
-            updateCart();
+            const p = allProducts.find(i => i.id === id);
+            const found = cart.find(i => i.id === id);
+            if(found) found.qty++; else cart.push({...p, qty: 1});
+            updateCartUI();
         };
 
-        function updateCart() {
-            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
-            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('cart-items').innerHTML = cart.map(i => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl">
-                    <img src="${i.img}" class="w-10 h-10 rounded-lg object-cover">
-                    <div class="flex-grow text-[10px]">
-                        <div class="font-bold">${i.name}</div>
-                        <div class="text-blue-600 font-bold">$${i.price.toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeQty('${i.id}', -1)" class="w-6 h-6 bg-white border rounded-lg">-</button>
-                        <span class="text-xs font-bold">${i.qty}</span>
-                        <button onclick="changeQty('${i.id}', 1)" class="w-6 h-6 bg-blue-600 text-white rounded-lg">+</button>
+        window.changeQty = (id, delta) => {
+            const item = cart.find(i => i.id === id);
+            if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(i => i.id !== id); updateCartUI(); }
+        };
+
+        function updateCartUI() {
+            const count = cart.reduce((s, i) => s + i.qty, 0);
+            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg border">
+                    <div class="flex-grow"><div class="font-bold text-gray-800 text-[10px] line-clamp-1">${item.name}</div><div class="text-blue-600 font-bold text-[9px]">$${(item.qty * item.price).toFixed(2)}</div></div>
+                    <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-full border shadow-sm">
+                        <button onclick="changeQty('${item.id}', -1)" class="text-gray-300 text-xs"><i class="fas fa-minus-circle"></i></button>
+                        <span class="font-bold text-xs">${item.qty}</span>
+                        <button onclick="changeQty('${item.id}', 1)" class="text-blue-500 text-xs"><i class="fas fa-plus-circle"></i></button>
                     </div>
                 </div>`).join('');
         }
 
-        window.changeQty = (id, delta) => {
-            const item = cart.find(x => x.id === id);
-            item.qty += delta;
-            if(item.qty < 1) cart = cart.filter(x => x.id !== id);
-            updateCart();
-        };
-
-        window.toggleCart = () => document.getElementById('cart-modal').classList.toggle('hidden');
-        window.showHistory = () => switchView('history');
-
         window.checkout = async () => {
-            const name = document.getElementById('cust-name').value.trim();
-            if(!name || cart.length === 0) return alert("សូមបំពេញឈ្មោះ និងរើសទំនិញ!");
-            
-            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            await addDoc(collection(db, "orders"), {
-                customer_name: name,
-                items: cart,
-                total_amount: `$${total.toFixed(2)}`,
-                createdAt: serverTimestamp()
-            });
+            const user = tg.initDataUnsafe?.user;
+            let fullName = ((user?.first_name || "") + " " + (user?.last_name || "")).trim() || localStorage.getItem('cust_name');
+            if (!fullName) {
+                fullName = prompt("សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក៖");
+                if (fullName) localStorage.setItem('cust_name', fullName); else return;
+            }
 
-            alert("កុម្ម៉ង់បានជោគជ័យ!");
-            cart = []; updateCart(); toggleCart();
-            document.getElementById('cust-name').value = "";
-            switchView('history'); // ប្តូរទៅមើលប្រវត្តិភ្លាមៗ
-            document.getElementById('search-history-name').value = name;
-            fetchCustomerHistory();
+            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('km-KH');
+            const timeStr = now.toLocaleTimeString('km-KH', { hour12: true });
+
+            let itemsTxt = cart.map((i, idx) => `${idx + 1}. ${i.name} (x${i.qty}) = *$${(i.qty * i.price).toFixed(2)}*`).join('\n');
+            const message = `🏗 *ការកុម្ម៉ង់ថ្មី*\n👤 *អតិថិជន:* ${fullName}\n💰 *សរុប: $${total.toFixed(2)}*\n\n${itemsTxt}\n\n🚀 *Roththa Shop*`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
+                });
+
+                // Save to Local History
+                const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+                history.unshift({ date: dateStr, time: timeStr, items: [...cart], total: total });
+                localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 20)));
+
+                // Save to Firebase
+                await addDoc(collection(db, "orders"), { customer_name: fullName, items: cart, total_amount: `$${total.toFixed(2)}`, createdAt: serverTimestamp() });
+
+                alert("✅ ការកម្មង់បានជោគជ័យ!");
+                cart = []; updateCartUI(); toggleCartModal();
+            } catch (e) { alert("Error Checkout!"); }
         };
 
-        init();
+        window.toggleHistoryModal = () => {
+            const modal = document.getElementById('history-modal');
+            const overlay = document.getElementById('history-overlay');
+            modal.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+            setTimeout(() => overlay.classList.toggle('opacity-0'), 10);
+
+            if(modal.classList.contains('active')) {
+                const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+                document.getElementById('customer-history-list').innerHTML = history.map(o => `
+                    <div class="bg-blue-50 p-3 rounded-2xl border border-blue-100 mb-2">
+                        <div class="flex justify-between items-center mb-1 text-[8px] font-bold text-blue-500">
+                            <span>${o.date} | ${o.time}</span>
+                            <span class="text-red-500">$${o.total.toFixed(2)}</span>
+                        </div>
+                        <div class="text-[9px] text-gray-600">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
+                    </div>`).join('') || "<p class='text-center py-6 text-[10px] text-gray-400'>មិនទាន់មានប្រវត្តិ</p>";
+            }
+        };
+
+        window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); toggleHistoryModal(); } };
+        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
+        window.filterByCategory = (cat) => { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); event.target.classList.add('active-cat'); renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat)); };
+        window.filterProducts = () => { const v = document.getElementById('search-box').value.toLowerCase(); renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v))); };
+        
+        window.onload = loadAppData;
     </script>
 </body>
 </html>
