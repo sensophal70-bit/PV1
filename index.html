@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Full Fix</title>
+    <title>Roththa Shop - Number Only</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -14,58 +14,71 @@
         .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
         .modal-up.active { transform: translateY(0); }
         .active-cat { background-color: #1e40af !important; color: white !important; }
+        
+        /* Image Pop-up Animation */
+        #image-popup-el { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.5); opacity: 0; }
+        #image-popup-el.active { transform: scale(1); opacity: 1; }
+        
+        /* លាក់ប៊ូតុងព្រួញលើ Input Number */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="pb-32">
 
-    <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white">
+    <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
+    <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white border-b-4 border-yellow-500">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-lg font-bold italic uppercase">Roththa Shop</h1>
-            <button onclick="toggleHistoryModal()" class="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/30">
+            <button onclick="window.toggleHistoryModal()" class="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/30">
                 <i class="fas fa-history mr-1"></i> ប្រវត្តិ
             </button>
         </div>
-        <input type="text" id="search-box" onkeyup="filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800 shadow-inner">
+        <input type="text" id="search-box" onkeyup="window.filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800">
     </div>
 
     <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20">
-        <button onclick="filterByCategory('All')" class="cat-btn active-cat whitespace-nowrap px-6 py-2 bg-gray-100 text-gray-500 rounded-full text-[10px] font-bold border">ទាំងអស់</button>
+        <button onclick="window.filterByCategory('All')" class="cat-btn active-cat whitespace-nowrap px-6 py-2 bg-gray-100 rounded-full text-[10px] font-bold border">ទាំងអស់</button>
     </div>
 
     <div class="px-3 mt-4">
         <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10"></div>
     </div>
 
-    <div id="cart-bar" onclick="toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
+    <div id="image-overlay" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-6" onclick="window.closeImagePopup()">
+        <img id="image-popup-el" src="" class="max-w-full max-h-[70vh] rounded-3xl border-4 border-white/20 shadow-2xl">
+    </div>
+
+    <div id="cart-bar" onclick="window.toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
         <div class="flex items-center gap-3">
             <span id="cart-count" class="bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
             <div id="cart-total-bar" class="font-bold text-sm">$0.00</div>
         </div>
-        <div class="text-[9px] font-bold uppercase tracking-widest">មើលកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
+        <div class="text-[9px] font-bold uppercase italic text-yellow-400">មើលកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
     </div>
 
-    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="toggleCartModal()"></div>
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="window.toggleCartModal()"></div>
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[85vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase border-b pb-2">កន្ត្រកទំនិញ</h2>
         <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
-        <div class="mt-4 pt-4 border-t space-y-4">
-            <div class="flex justify-between items-center px-1 font-bold italic">
-                <span class="text-gray-400 text-[10px] uppercase tracking-tighter">សរុបការទូទាត់</span>
+        <div class="mt-4 pt-4 border-t">
+            <div class="flex justify-between items-center mb-4 italic">
+                <span class="text-gray-400 text-[10px] uppercase">សរុបទូទាត់</span>
                 <span id="modal-total-price" class="text-red-600 text-2xl font-bold">$0.00</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg flex justify-center items-center gap-2 active:bg-blue-900">
-                <i class="fab fa-telegram-plane"></i> ផ្ញើការកម្មង់ទៅ Telegram
+            <button onclick="window.checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:bg-blue-900">
+                <i class="fab fa-telegram-plane mr-2"></i> បញ្ជូនទៅ Telegram
             </button>
         </div>
     </div>
 
-    <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="toggleHistoryModal()"></div>
+    <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleHistoryModal()"></div>
     <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
+        <h2 class="text-center font-bold text-gray-800 mb-4 text-xs border-b pb-2 italic">ប្រវត្តិការកម្មង់</h2>
         <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar"></div>
-        <button onclick="clearHistory()" class="text-center text-red-400 text-[10px] underline my-4">សម្អាតប្រវត្តិ</button>
+        <button onclick="window.clearHistory()" class="text-center text-red-400 text-[10px] underline my-4">សម្អាតប្រវត្តិ</button>
     </div>
 
     <script type="module">
@@ -83,18 +96,160 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
         let allProducts = [], cart = [];
 
-        // --- Core Functions ---
+        // --- Global Functions ---
+        window.openImagePopup = (src) => {
+            const el = document.getElementById('image-overlay');
+            const img = document.getElementById('image-popup-el');
+            img.src = src;
+            el.classList.remove('hidden');
+            setTimeout(() => img.classList.add('active'), 10);
+        };
+
+        window.closeImagePopup = () => {
+            const el = document.getElementById('image-overlay');
+            const img = document.getElementById('image-popup-el');
+            img.classList.remove('active');
+            setTimeout(() => el.classList.add('hidden'), 300);
+        };
+
+        window.addToCart = (id) => {
+            document.getElementById('click-sound').play().catch(()=>{});
+            const p = allProducts.find(i => i.id === id);
+            const found = cart.find(i => i.id === id);
+            if(found) found.qty++; else cart.push({...p, qty: 1});
+            window.updateCartUI();
+        };
+
+        window.changeQty = (id, delta) => {
+            const item = cart.find(i => i.id === id);
+            if(item) {
+                item.qty = Math.max(1, item.qty + delta);
+                window.updateCartUI();
+            }
+        };
+
+        // មុខងារនេះត្រូវបានកែសម្រួលដើម្បីឱ្យទទួលតែលេខ
+        window.updateManualQty = (id, value) => {
+            const item = cart.find(i => i.id === id);
+            if(item) {
+                let v = parseInt(value);
+                item.qty = (isNaN(v) || v < 1) ? 1 : v;
+                window.updateCartUI();
+            }
+        };
+
+        window.removeFromCart = (id) => {
+            if(confirm("លុបទំនិញនេះ?")) {
+                cart = cart.filter(i => i.id !== id);
+                window.updateCartUI();
+            }
+        };
+
+        window.updateCartUI = () => {
+            const count = cart.reduce((s, i) => s + i.qty, 0);
+            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            
+            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg border">
+                    <div class="flex-grow">
+                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
+                        <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center bg-white px-2 py-1 rounded-full border shadow-sm">
+                            <button onclick="window.changeQty('${item.id}', -1)" class="px-2 text-xs text-gray-400">-</button>
+                            
+                            <input type="number" 
+                                   inputmode="numeric" 
+                                   pattern="[0-9]*"
+                                   value="${item.qty}" 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                   onchange="window.updateManualQty('${item.id}', this.value)" 
+                                   class="w-9 text-center font-bold text-[10px] border-none outline-none p-0 bg-transparent">
+                            
+                            <button onclick="window.changeQty('${item.id}', 1)" class="px-2 text-xs text-blue-500">+</button>
+                        </div>
+                        <button onclick="window.removeFromCart('${item.id}')" class="w-8 h-8 bg-red-50 text-red-500 rounded-full border border-red-100"><i class="fas fa-trash-alt text-[9px]"></i></button>
+                    </div>
+                </div>`).join('');
+        };
+
+        window.toggleCartModal = () => {
+            document.getElementById('cart-modal').classList.toggle('active');
+            const o = document.getElementById('overlay');
+            o.classList.toggle('hidden');
+            setTimeout(() => o.classList.toggle('opacity-0'), 10);
+        };
+
+        window.toggleHistoryModal = () => {
+            const m = document.getElementById('history-modal');
+            const o = document.getElementById('history-overlay');
+            m.classList.toggle('active'); o.classList.toggle('hidden');
+            if(m.classList.contains('active')) {
+                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
+                document.getElementById('customer-history-list').innerHTML = h.map(o => `
+                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] shadow-sm text-left">
+                        <div class="flex justify-between font-bold text-blue-800 mb-1">
+                            <span>${o.date}</span>
+                            <span class="text-red-600">$${o.total.toFixed(2)}</span>
+                        </div>
+                        <div class="text-gray-500 italic">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
+                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>គ្មានប្រវត្តិកម្មង់</p>";
+            }
+        };
+
+        window.clearHistory = () => { if(confirm("លុបប្រវត្តិទាំងអស់?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
+
+        window.checkout = async () => {
+            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+            const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+            history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
+            localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
+
+            const message = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n💰 *សរុប: $${total.toFixed(2)}*\n\n` + cart.map(i => `• ${i.name} (x${i.qty})`).join('\n');
+            await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
+            });
+            alert("✅ រួចរាល់!"); cart = []; window.updateCartUI(); window.toggleCartModal();
+        };
+
+        window.filterByCategory = (cat) => {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat'));
+            event.target.classList.add('active-cat');
+            renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
+        };
+
+        window.filterProducts = () => {
+            const v = document.getElementById('search-box').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v)));
+        };
+
+        function renderProducts(data) {
+            document.getElementById('product-grid').innerHTML = data.map(p => `
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                    <div onclick="window.openImagePopup('${p.img}')" class="w-full aspect-square mb-1.5 overflow-hidden rounded-lg bg-gray-50 border">
+                        <img src="${p.img}" class="w-full h-full object-cover active:scale-110 transition-transform">
+                    </div>
+                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
+                    <div class="text-red-600 font-bold text-[10px] mb-1.5">$${p.price.toFixed(2)}</div>
+                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold shadow-md active:scale-90 transition-all">បន្ថែម</button>
+                </div>`).join('');
+        }
+
         async function init() {
             try {
                 const cSnap = await getDocs(collection(db, "categories"));
                 const catList = document.getElementById('cat-list');
                 cSnap.forEach(d => {
-                    catList.innerHTML += `<button onclick="filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm transition-all">${d.data().name}</button>`;
+                    catList.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm">${d.data().name}</button>`;
                 });
 
                 const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
@@ -103,121 +258,6 @@
             } catch (e) { console.error(e); }
         }
 
-        function renderProducts(data) {
-            document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-                    <img src="${p.img}" class="w-full h-16 object-cover rounded-lg mb-1.5 border" onerror="this.src='https://via.placeholder.com/150'">
-                    <h3 class="font-bold text-gray-800 text-[9px] line-clamp-2 h-7 leading-tight">${p.name}</h3>
-                    <div class="text-red-600 font-bold text-[10px] my-1">$${p.price.toFixed(2)}</div>
-                    <button onclick="addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold active:bg-blue-800 transition-all">បន្ថែម</button>
-                </div>`).join('');
-        }
-
-        // --- Cart Logic (ភ្ជាប់ទៅកាន់ window ទាំងអស់) ---
-        window.addToCart = (id) => {
-            const p = allProducts.find(i => i.id === id);
-            const found = cart.find(i => i.id === id);
-            if(found) found.qty++; else cart.push({...p, qty: 1});
-            updateCartUI();
-        };
-
-        window.changeQty = (id, delta) => {
-            const item = cart.find(i => i.id === id);
-            if(item) {
-                item.qty = Math.max(1, item.qty + delta);
-                updateCartUI();
-            }
-        };
-
-        window.updateManualQty = (id, value) => {
-            const item = cart.find(i => i.id === id);
-            if(item) {
-                let v = parseInt(value);
-                item.qty = (isNaN(v) || v < 1) ? 1 : v;
-                updateCartUI();
-            }
-        };
-
-        // ប៊ូតុងលុបដែលជួសជុលរួច
-        window.removeFromCart = (id) => {
-            if(confirm("តើអ្នកចង់លុបទំនិញនេះមែនទេ?")) {
-                cart = cart.filter(i => i.id !== id);
-                updateCartUI();
-            }
-        };
-
-        function updateCartUI() {
-            const count = cart.reduce((s, i) => s + i.qty, 0);
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            
-            if(count === 0) {
-                document.getElementById('cart-bar').classList.add('hidden');
-                document.getElementById('cart-modal').classList.remove('active');
-                document.getElementById('overlay').classList.add('hidden');
-            } else {
-                document.getElementById('cart-bar').classList.remove('hidden');
-            }
-
-            document.getElementById('cart-count').innerText = count;
-            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
-            
-            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-200">
-                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg border">
-                    <div class="flex-grow">
-                        <div class="font-bold text-gray-800 text-[10px] line-clamp-1">${item.name}</div>
-                        <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center bg-white px-2 py-1 rounded-full border shadow-sm">
-                            <button onclick="changeQty('${item.id}', -1)" class="text-gray-300 px-2 text-[10px]"><i class="fas fa-minus"></i></button>
-                            <input type="number" inputmode="numeric" value="${item.qty}" 
-                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                   onchange="updateManualQty('${item.id}', this.value)" 
-                                   class="w-7 text-center font-bold text-[10px] text-blue-900 border-none outline-none p-0 bg-transparent">
-                            <button onclick="changeQty('${item.id}', 1)" class="text-blue-500 px-2 text-[10px]"><i class="fas fa-plus"></i></button>
-                        </div>
-                        <button onclick="removeFromCart('${item.id}')" class="w-9 h-9 bg-red-100 text-red-600 rounded-full flex items-center justify-center active:scale-90 transition-all border border-red-200">
-                            <i class="fas fa-trash-alt text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>`).join('');
-        }
-
-        window.checkout = async () => {
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
-            history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
-            localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
-
-            const message = `🏗 *ការកុម្ម៉ង់ថ្មី*\n💰 *សរុប: $${total.toFixed(2)}*\n\n` + cart.map(i => `• ${i.name} (x${i.qty})`).join('\n');
-            await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
-            });
-            alert("✅ កុម្ម៉ង់ជោគជ័យ!"); cart = []; updateCartUI(); toggleCartModal();
-        };
-
-        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
-        window.toggleHistoryModal = () => {
-            const m = document.getElementById('history-modal');
-            const o = document.getElementById('history-overlay');
-            m.classList.toggle('active'); o.classList.toggle('hidden');
-            if(m.classList.contains('active')) {
-                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] shadow-sm">
-                        <div class="flex justify-between font-bold text-blue-800 mb-1"><span>${o.date}</span><span class="text-red-600">$${o.total.toFixed(2)}</span></div>
-                        <div class="text-gray-500">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
-                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>គ្មានប្រវត្តិ</p>";
-            }
-        };
-
-        window.clearHistory = () => { if(confirm("លុប?")) { localStorage.removeItem('my_orders'); toggleHistoryModal(); } };
-        window.filterByCategory = (cat) => { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat')); event.target.classList.add('active-cat'); renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat)); };
-        window.filterProducts = () => { const v = document.getElementById('search-box').value.toLowerCase(); renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v))); };
-        
         init();
     </script>
 </body>
