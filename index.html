@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Professional Order System</title>
+    <title>Roththa Shop - Full System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -13,8 +13,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
         .modal-up.active { transform: translateY(0); }
-        #image-popup-el { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.5); opacity: 0; }
-        #image-popup-el.active { transform: scale(1); opacity: 1; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
@@ -23,12 +21,17 @@
     <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white border-b-4 border-yellow-500">
         <div class="flex justify-between items-center mb-4">
             <div>
-                <h1 class="text-lg font-bold italic uppercase tracking-wider">Roththa Shop</h1>
-                <p id="user-display" class="text-[10px] opacity-90 italic">កំពុងស្វែងរកទិន្នន័យ...</p>
+                <h1 class="text-lg font-bold italic uppercase">Roththa Shop</h1>
+                <p id="user-display" class="text-[10px] opacity-90 italic">ស្វាគមន៍អតិថិជន</p>
             </div>
-            <button onclick="window.toggleHistoryModal()" class="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/30">
-                <i class="fas fa-history mr-1"></i> ប្រវត្តិ
-            </button>
+            <div class="flex gap-2">
+                <button onclick="window.toggleAccountModal()" class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold">
+                    <i class="fas fa-user-circle"></i> គណនី
+                </button>
+                <button onclick="window.toggleHistoryModal()" class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold">
+                    <i class="fas fa-history"></i> ប្រវត្តិ
+                </button>
+            </div>
         </div>
         <input type="text" id="search-box" onkeyup="window.filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800 shadow-inner">
     </div>
@@ -46,30 +49,37 @@
             <span id="cart-count" class="bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
             <div id="cart-total-bar" class="font-bold text-sm">$0.00</div>
         </div>
-        <div class="text-[9px] font-bold uppercase italic text-yellow-400">ពិនិត្យកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
+        <div class="text-[9px] font-bold uppercase italic text-yellow-400">មើលកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
+    </div>
+
+    <div id="account-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleAccountModal()"></div>
+    <div id="account-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-8 shadow-2xl text-center">
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-md">
+            <img id="acc-photo" src="https://ui-avatars.com/api/?name=User" class="w-full h-full rounded-full object-cover">
+        </div>
+        <h2 id="acc-name" class="text-xl font-bold text-gray-800">ឈ្មោះអតិថិជន</h2>
+        <p id="acc-id" class="text-[10px] text-gray-400 mb-6 italic">Telegram ID: 00000000</p>
+        <div class="p-4 bg-green-50 rounded-2xl border border-green-100 text-green-700 text-[10px] font-bold mb-6">
+            <i class="fas fa-check-circle mr-1"></i> បានភ្ជាប់ជាមួយ Telegram រួចរាល់
+        </div>
+        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs">បិទវិញ</button>
     </div>
 
     <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="window.toggleCartModal()"></div>
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[90vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase border-b pb-2 italic">កន្ត្រកទំនិញរបស់អ្នក</h2>
-        
         <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
-        
         <div class="mt-4 pt-4 border-t">
-            <div id="location-status" class="mb-4 p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
-                <span class="text-[10px] text-blue-800 font-bold"><i class="fas fa-map-marker-alt mr-1"></i> ទីតាំងដឹកជញ្ជូន</span>
-                <button onclick="window.getLocation()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-bold active:bg-blue-800">ផ្ញើទីតាំង</button>
-            </div>
-            <input type="hidden" id="geo-link" value="មិនបានភ្ជាប់ទីតាំង">
-
             <div class="flex justify-between items-center mb-4">
                 <span class="text-gray-400 text-[10px] uppercase italic">សរុបរួម</span>
                 <span id="modal-total-price" class="text-red-600 text-2xl font-bold">$0.00</span>
             </div>
-            <button onclick="window.checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">
-                <i class="fab fa-telegram-plane mr-2 text-lg"></i> បញ្ជូនទៅ Telegram
+            <button id="btn-checkout" onclick="window.handleCheckoutProcess()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                <i class="fab fa-telegram-plane text-lg"></i> បញ្ជូនទៅ Telegram
             </button>
+            <p class="text-[8px] text-center text-gray-400 mt-2 italic">* ទីតាំង និងព័ត៌មានគណនីនឹងត្រូវបានបញ្ជូនអូតូ</p>
         </div>
     </div>
 
@@ -79,10 +89,6 @@
         <h2 class="text-center font-bold text-gray-800 mb-4 text-xs border-b pb-2 italic uppercase">ប្រវត្តិការកម្មង់</h2>
         <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar"></div>
         <button onclick="window.clearHistory()" class="text-center text-red-400 text-[10px] underline my-4">សម្អាតប្រវត្តិ</button>
-    </div>
-
-    <div id="image-overlay" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-6" onclick="window.closeImagePopup()">
-        <img id="image-popup-el" src="" class="max-w-full max-h-[70vh] rounded-3xl border-4 border-white/20 shadow-2xl">
     </div>
 
     <script type="module">
@@ -102,113 +108,69 @@
         const db = getFirestore(app);
         let allProducts = [], cart = [];
 
-        // ១. ទាញទិន្នន័យពី Telegram WebApp
+        // ១. ចាប់ទិន្នន័យ Telegram
         const tg = window.Telegram.WebApp;
         tg.expand();
         const user = tg.initDataUnsafe?.user;
         const customerName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : "ភ្ញៀវទូទៅ";
+        
+        // បង្ហាញក្នុង Header និង Account Modal
         document.getElementById('user-display').innerText = `សួស្តី, ${customerName}`;
+        document.getElementById('acc-name').innerText = customerName;
+        document.getElementById('acc-id').innerText = `Telegram ID: ${user?.id || 'N/A'}`;
+        if(user?.photo_url) document.getElementById('acc-photo').src = user.photo_url;
 
-        // ២. មុខងារ Location
-        window.getLocation = () => {
+        // ២. មុខងារ Checkout និង Auto Location
+        window.handleCheckoutProcess = () => {
+            if (cart.length === 0) return alert("សូមរើសទំនិញ!");
+            const btn = document.getElementById('btn-checkout');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
+
             if (navigator.geolocation) {
-                const btn = event.target;
-                btn.innerText = "កំពុងរក...";
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                    document.getElementById('geo-link').value = mapLink;
-                    document.getElementById('location-status').innerHTML = `<span class="text-[10px] text-green-600 font-bold"><i class="fas fa-check-circle mr-1"></i> បានភ្ជាប់ទីតាំងរួចរាល់</span>`;
-                }, () => {
-                    alert("សូមបើក Location លើទូរសព្ទបង!");
-                    btn.innerText = "ផ្ញើទីតាំង";
-                });
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => window.finalCheckout(`https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`),
+                    () => window.finalCheckout("មិនបានផ្ញើទីតាំង"),
+                    { timeout: 5000 }
+                );
+            } else {
+                window.finalCheckout("មិនអាចប្រើ Location");
             }
         };
 
-        // ៣. បញ្ជូនទៅ Telegram (ជាមួយ Link ឆាតទៅវិញ)
-        window.checkout = async () => {
-            if (cart.length === 0) return alert("សូមរើសទំនិញ!");
+        window.finalCheckout = async (loc) => {
             const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            const location = document.getElementById('geo-link').value;
-            
-            // បង្កើត Link សម្រាប់ឆាតទៅអតិថិជនវិញ
             const contactLink = user?.username ? `https://t.me/${user.username}` : `tg://user?id=${user?.id}`;
 
             const message = 
                 `🏗 *ការកុម្ម៉ង់ថ្មី Roththa Shop*\n` +
                 `━━━━━━━━━━━━━━━━\n` +
                 `👤 *អតិថិជន:* [${customerName}](${contactLink})\n` +
-                `📍 *ទីតាំង:* [ចុចមើលផែនទី](${location})\n` +
+                `📍 *ទីតាំង:* [ចុចមើលផែនទី](${loc})\n` +
                 `━━━━━━━━━━━━━━━━\n` +
                 cart.map(i => `🛍 ${i.name}\n   └ ចំនួន: ${i.qty} | $${(i.qty * i.price).toFixed(2)}`).join('\n\n') +
                 `\n━━━━━━━━━━━━━━━━\n` +
-                `💰 *សរុបរួម: $${total.toFixed(2)}*\n\n` +
-                `👉 [ចុចទីនេះដើម្បីឆាតទៅអតិថិជន](${contactLink})`;
+                `💰 *សរុបរួម: $${total.toFixed(2)}*`;
 
-            try {
-                await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown", disable_web_page_preview: true })
-                });
+            await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown", disable_web_page_preview: true })
+            });
 
-                // រក្សាទុកប្រវត្តិ
-                const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
-                localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
+            const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
+            history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
+            localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
 
-                alert("✅ បញ្ជូនទៅកាន់អ្នកលក់រួចរាល់!");
-                cart = []; window.updateCartUI(); window.toggleCartModal();
-            } catch (e) { alert("❌ មានបញ្ហាការតភ្ជាប់!"); }
+            alert("✅ រួចរាល់! អរគុណបងសម្រាប់ការកម្មង់។");
+            cart = []; window.updateCartUI(); window.toggleCartModal();
+            document.getElementById('btn-checkout').disabled = false;
+            document.getElementById('btn-checkout').innerHTML = `<i class="fab fa-telegram-plane text-lg"></i> បញ្ជូនទៅ Telegram`;
         };
 
-        // --- មុខងារ UI ផ្សេងៗ ---
-        window.addToCart = (id) => {
-            const p = allProducts.find(i => i.id === id);
-            const found = cart.find(i => i.id === id);
-            if(found) found.qty++; else cart.push({...p, qty: 1});
-            window.updateCartUI();
-        };
-
-        window.updateManualQty = (id, val) => {
-            const item = cart.find(i => i.id === id);
-            if(item) {
-                let v = parseInt(val.replace(/[^0-9]/g, '')); // អនុញ្ញាតតែលេខ
-                item.qty = (isNaN(v) || v < 1) ? 1 : v;
-                window.updateCartUI();
-            }
-        };
-
-        window.changeQty = (id, delta) => {
-            const item = cart.find(i => i.id === id);
-            if(item) { item.qty = Math.max(1, item.qty + delta); window.updateCartUI(); }
-        };
-
-        window.removeFromCart = (id) => { if(confirm("លុបទំនិញ?")) { cart = cart.filter(i => i.id !== id); window.updateCartUI(); } };
-
-        window.updateCartUI = () => {
-            const count = cart.reduce((s, i) => s + i.qty, 0);
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
-            document.getElementById('cart-count').innerText = count;
-            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
-            
-            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 shadow-sm">
-                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg">
-                    <div class="flex-grow text-left">
-                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
-                        <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center bg-white px-2 py-1 rounded-full border">
-                            <button onclick="window.changeQty('${item.id}', -1)" class="px-2 text-xs text-gray-400">-</button>
-                            <input type="number" inputmode="numeric" value="${item.qty}" oninput="window.updateManualQty('${item.id}', this.value)" class="w-8 text-center font-bold text-[10px] outline-none border-none p-0 bg-transparent">
-                            <button onclick="window.changeQty('${item.id}', 1)" class="px-2 text-xs text-blue-500">+</button>
-                        </div>
-                        <button onclick="window.removeFromCart('${item.id}')" class="text-red-400 px-2"><i class="fas fa-trash-alt text-[9px]"></i></button>
-                    </div>
-                </div>`).join('');
+        // UI Helpers
+        window.toggleAccountModal = () => {
+            document.getElementById('account-modal').classList.toggle('active');
+            document.getElementById('account-overlay').classList.toggle('hidden');
         };
 
         window.toggleCartModal = () => {
@@ -224,63 +186,74 @@
             if(m.classList.contains('active')) {
                 const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
                 document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] shadow-sm text-left">
-                        <div class="flex justify-between font-bold text-blue-800"><span>${o.date}</span><span class="text-red-600">$${o.total.toFixed(2)}</span></div>
-                        <div class="text-gray-500 italic leading-relaxed">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
-                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>មិនទាន់មានប្រវត្តិកម្មង់</p>";
+                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] text-left">
+                        <div class="flex justify-between font-bold text-blue-800"><span>${o.date}</span><span>$${o.total.toFixed(2)}</span></div>
+                        <div class="text-gray-400 italic">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
+                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>គ្មានប្រវត្តិ</p>";
             }
         };
 
-        window.clearHistory = () => { if(confirm("លុបប្រវត្តិទាំងអស់?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
-
-        window.openImagePopup = (src) => {
-            const el = document.getElementById('image-overlay');
-            const img = document.getElementById('image-popup-el');
-            img.src = src; el.classList.remove('hidden'); setTimeout(() => img.classList.add('active'), 10);
-        };
-        window.closeImagePopup = () => {
-            const img = document.getElementById('image-popup-el');
-            img.classList.remove('active'); setTimeout(() => document.getElementById('image-overlay').classList.add('hidden'), 300);
+        window.addToCart = (id) => {
+            const p = allProducts.find(i => i.id === id);
+            const found = cart.find(i => i.id === id);
+            if(found) found.qty++; else cart.push({...p, qty: 1});
+            window.updateCartUI();
         };
 
-        window.filterByCategory = (cat) => {
-            document.querySelectorAll('.cat-btn').forEach(b => {
-                b.classList.remove('bg-blue-800', 'text-white');
-                b.classList.add('bg-white', 'text-gray-500');
-            });
-            event.target.classList.add('bg-blue-800', 'text-white');
-            renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
+        window.updateCartUI = () => {
+            const count = cart.reduce((s, i) => s + i.qty, 0);
+            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border">
+                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg">
+                    <div class="flex-grow text-left">
+                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
+                        <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.changeQty('${item.id}', -1)" class="w-6 h-6 bg-white rounded-full border text-xs">-</button>
+                        <span class="text-[10px] font-bold">${item.qty}</span>
+                        <button onclick="window.changeQty('${item.id}', 1)" class="w-6 h-6 bg-white rounded-full border text-xs">+</button>
+                    </div>
+                </div>`).join('');
         };
 
-        window.filterProducts = () => {
-            const v = document.getElementById('search-box').value.toLowerCase();
-            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v)));
+        window.changeQty = (id, d) => {
+            const i = cart.find(x => x.id === id);
+            if(i) { i.qty = Math.max(1, i.qty + d); window.updateCartUI(); }
         };
+
+        window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
 
         async function init() {
-            try {
-                const cSnap = await getDocs(collection(db, "categories"));
-                const catList = document.getElementById('cat-list');
-                cSnap.forEach(d => {
-                    catList.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm transition-all">${d.data().name}</button>`;
-                });
-                const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-                allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderProducts(allProducts);
-            } catch (e) { console.error(e); }
+            const cSnap = await getDocs(collection(db, "categories"));
+            const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+            allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            cSnap.forEach(d => {
+                document.getElementById('cat-list').innerHTML += `<button onclick="window.filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm">${d.data().name}</button>`;
+            });
+            renderProducts(allProducts);
         }
 
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-                    <div onclick="window.openImagePopup('${p.img}')" class="w-full aspect-square mb-1.5 overflow-hidden rounded-lg bg-gray-50 border">
-                        <img src="${p.img}" class="w-full h-full object-cover active:scale-110 transition-transform">
-                    </div>
-                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
-                    <div class="text-red-600 font-bold text-[10px] mb-1.5">$${p.price.toFixed(2)}</div>
-                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold shadow-md active:scale-90 transition-all">បន្ថែម</button>
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <img src="${p.img}" class="w-full aspect-square object-cover rounded-lg mb-2">
+                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1">${p.name}</h3>
+                    <div class="text-red-600 font-bold text-[10px] mb-2">$${p.price.toFixed(2)}</div>
+                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold">បន្ថែម</button>
                 </div>`).join('');
         }
+
+        window.filterByCategory = (cat) => renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
+        window.filterProducts = () => {
+            const v = document.getElementById('search-box').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v)));
+        };
 
         init();
     </script>
