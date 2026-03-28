@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Final Version Fixed</title>
+    <title>Roththa Shop - Final Fixed with Delete</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -14,8 +14,6 @@
         .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
         .modal-up.active { transform: translateY(0); }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        /* បន្ថែមស្ទីលសម្រាប់ប៊ូតុងដែលកំពុងចុច */
         .cat-btn.active { background-color: #1e40af !important; color: white !important; border-color: #1e40af !important; }
     </style>
 </head>
@@ -41,7 +39,7 @@
 
     <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20 shadow-sm">
         <button onclick="window.filterByCategory('All', event)" class="cat-btn active whitespace-nowrap px-6 py-2 rounded-full text-[10px] font-bold border shadow-sm transition-all bg-white text-gray-500">ទាំងអស់</button>
-        </div>
+    </div>
 
     <div class="px-3 mt-4">
         <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10"></div>
@@ -55,18 +53,8 @@
         <div class="text-[9px] font-bold uppercase italic text-yellow-400">ពិនិត្យកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
     </div>
 
-    <div id="account-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleAccountModal()"></div>
-    <div id="account-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-8 shadow-2xl text-center">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-md overflow-hidden">
-            <img id="acc-photo" src="https://ui-avatars.com/api/?name=User" class="w-full h-full object-cover">
-        </div>
-        <h2 id="acc-name" class="text-xl font-bold text-gray-800">ឈ្មោះអតិថិជន</h2>
-        <p id="acc-id" class="text-[10px] text-gray-400 mb-6 italic">Telegram ID: ...</p>
-        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs active:bg-gray-200">បិទវិញ</button>
-    </div>
-
     <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="window.toggleCartModal()"></div>
+    
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[90vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h2 class="text-center font-bold text-blue-900 mb-4 text-[11px] uppercase border-b pb-2 italic">កន្ត្រកទំនិញរបស់អ្នក</h2>
@@ -82,6 +70,17 @@
         </div>
     </div>
 
+    <div id="account-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleAccountModal()"></div>
+    <div id="account-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-8 shadow-2xl text-center">
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-md overflow-hidden">
+            <img id="acc-photo" src="https://ui-avatars.com/api/?name=User" class="w-full h-full object-cover">
+        </div>
+        <h2 id="acc-name" class="text-xl font-bold text-gray-800">ឈ្មោះអតិថិជន</h2>
+        <p id="acc-id" class="text-[10px] text-gray-400 mb-6 italic">Telegram ID: ...</p>
+        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs active:bg-gray-200">បិទវិញ</button>
+    </div>
+
     <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleHistoryModal()"></div>
     <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
@@ -92,7 +91,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -112,20 +111,20 @@
         const user = tg.initDataUnsafe?.user;
         const customerName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : "ភ្ញៀវទូទៅ";
 
-        // Setup User UI
+        // Setup UI
         document.getElementById('user-display').innerText = `សួស្តី, ${customerName}`;
         document.getElementById('acc-name').innerText = customerName;
         document.getElementById('acc-id').innerText = `ID: ${user?.id || 'N/A'}`;
         if(user?.photo_url) document.getElementById('acc-photo').src = user.photo_url;
 
-        // ១. ចាប់ទីតាំងទុកជាមុន (Auto Pre-load)
+        // Auto Location
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                currentLoc = `http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                currentLoc = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
             }, null, { enableHighAccuracy: true });
         }
 
-        // ២. មុខងារបញ្ជូនការកម្មង់ទៅ Telegram
+        // --- Checkout ---
         window.handleCheckout = async () => {
             if (cart.length === 0) return alert("សូមរើសទំនិញ!");
             const btn = document.getElementById('btn-checkout');
@@ -133,15 +132,26 @@
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
 
             const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
-            const contactLink = user?.username ? `https://t.me/${user.username}` : `tg://user?id=${user?.id}`;
-            const message = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: [${customerName}](${contactLink})\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n` + 
-                            cart.map(i => `• ${i.name} (x${i.qty}) = $${(i.qty*i.price).toFixed(2)}`).join('\n') + `\n💰 សរុប: $${total.toFixed(2)}`;
+            const total_str = `$${total.toFixed(2)}`;
 
             try {
+                await addDoc(collection(db, "orders"), {
+                    customer_name: customerName,
+                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+                    total_amount: total_str,
+                    location: currentLoc,
+                    createdAt: serverTimestamp()
+                });
+
+                const contactLink = user?.username ? `https://t.me/${user.username}` : `tg://user?id=${user?.id}`;
+                const message = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: [${customerName}](${contactLink})\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n` + 
+                                cart.map(i => `• ${i.name} (x${i.qty}) = $${(i.qty*i.price).toFixed(2)}`).join('\n') + `\n💰 សរុប: ${total_str}`;
+
                 const res = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown", disable_web_page_preview: true })
                 });
+
                 if(res.ok) {
                     const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
                     h.unshift({ date: new Date().toLocaleString('km-KH'), total });
@@ -153,19 +163,59 @@
             btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
         };
 
-        // ៣. មុខងារដូរពណ៌ Category ពេលចុច (Active State)
-        window.filterByCategory = (cat, event) => {
-            // ដក Class active ពីគ្រប់ប៊ូតុង
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-            // បន្ថែម Class active ទៅប៊ូតុងដែលចុច
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
+        // --- UI Logic with Delete Function ---
+        window.updateCartUI = () => {
+            const count = cart.reduce((s, i) => s + Number(i.qty), 0);
+            const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
+            
+            // បិទ Modal បើកន្ត្រកទទេ
+            if (count === 0) {
+                document.getElementById('cart-bar').classList.add('hidden');
+                if (document.getElementById('cart-modal').classList.contains('active')) {
+                    window.toggleCartModal();
+                }
+            } else {
+                document.getElementById('cart-bar').classList.remove('hidden');
             }
-            // Filter ផលិតផល
-            renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
+
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            
+            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 shadow-sm relative">
+                    <img src="${item.img || 'https://via.placeholder.com/150'}" class="w-12 h-12 object-cover rounded-xl border">
+                    <div class="flex-grow text-left">
+                        <div class="font-bold text-[10px] line-clamp-1 text-gray-700 pr-6">${item.name}</div>
+                        <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-100 mr-1">
+                        <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center font-bold text-gray-400">-</button>
+                        <input type="number" 
+                               value="${item.qty}" 
+                               inputmode="numeric" 
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               oninput="window.updateManualQty('${item.id}', this.value)" 
+                               class="w-10 text-center font-bold text-[12px] text-blue-800 outline-none border-none p-0 bg-transparent">
+                        <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-blue-600 font-bold">+</button>
+                    </div>
+
+                    <button onclick="window.removeFromCart('${item.id}')" class="text-red-400 p-2 active:scale-90 transition-all">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>`).join('');
         };
 
-        // ៤. មុខងារទូទៅ (Cart, Search, Modals)
+        // មុខងារលុបផលិតផល
+        window.removeFromCart = (id) => {
+            if(confirm("តើបងចង់លុបទំនិញនេះចេញពីកន្ត្រកមែនទេ?")) {
+                cart = cart.filter(item => item.id !== id);
+                window.updateCartUI();
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        };
+
         window.addToCart = (id) => {
             const p = allProducts.find(i => i.id === id);
             const found = cart.find(i => i.id === id);
@@ -174,37 +224,23 @@
             tg.HapticFeedback.impactOccurred('light');
         };
 
+        window.changeQty = (id, d) => {
+            const i = cart.find(x => x.id === id);
+            if(i) { 
+                i.qty = Math.max(1, Number(i.qty) + d); 
+                window.updateCartUI(); 
+            }
+        };
+
         window.updateManualQty = (id, val) => {
             const i = cart.find(x => x.id === id);
             if(i) { let n = parseInt(val); i.qty = (isNaN(n) || n < 1) ? 1 : n; window.updateCartUI(); }
         };
 
-        window.changeQty = (id, d) => {
-            const i = cart.find(x => x.id === id);
-            if(i) { i.qty = Math.max(1, Number(i.qty) + d); window.updateCartUI(); }
-        };
-
-        window.updateCartUI = () => {
-            const count = cart.reduce((s, i) => s + Number(i.qty), 0);
-            const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
-            document.getElementById('cart-count').innerText = count;
-            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
-            
-            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                    <img src="${item.img || item.image || 'https://via.placeholder.com/150'}" class="w-12 h-12 object-cover rounded-xl border">
-                    <div class="flex-grow text-left">
-                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
-                        <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border">
-                        <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center">-</button>
-                        <input type="number" value="${item.qty}" oninput="window.updateManualQty('${item.id}', this.value)" class="w-8 text-center font-bold text-[11px] text-blue-700 outline-none border-none p-0">
-                        <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-blue-600">+</button>
-                    </div>
-                </div>`).join('');
+        window.filterByCategory = (cat, event) => {
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            if (event) event.currentTarget.classList.add('active');
+            renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
         };
 
         window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
@@ -214,9 +250,9 @@
             if(m.classList.contains('active')) {
                 const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
                 document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-gray-50 p-3 rounded-xl border mb-2 text-[10px] flex justify-between">
-                        <span>📅 ${o.date}</span><span class="font-bold text-red-600">$${Number(o.total).toFixed(2)}</span>
-                    </div>`).join('') || "<p class='text-center py-10 text-gray-400'>មិនទាន់មានប្រវត្តិ</p>";
+                    <div class="bg-gray-50 p-3 rounded-xl border mb-2 text-[10px] flex justify-between items-center shadow-sm">
+                        <span class="text-gray-500 font-bold">📅 ${o.date}</span><span class="font-bold text-red-600">$${Number(o.total).toFixed(2)}</span>
+                    </div>`).join('') || "<p class='text-center py-10 text-gray-400 italic text-[10px]'>មិនទាន់មានប្រវត្តិ</p>";
             }
         };
         window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
@@ -224,13 +260,13 @@
 
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-                    <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50 border border-gray-100">
-                        <img src="${p.img || p.image || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center active:scale-95 transition-all">
+                    <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50">
+                        <img src="${p.img || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
                     </div>
                     <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
                     <div class="text-red-600 font-bold text-[10px] mb-2">$${Number(p.price).toFixed(2)}</div>
-                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold active:scale-90 transition-all">បន្ថែម</button>
+                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold">បន្ថែម</button>
                 </div>`).join('');
         }
 
@@ -239,7 +275,6 @@
                 const cSnap = await getDocs(collection(db, "categories"));
                 const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
                 allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                
                 const list = document.getElementById('cat-list');
                 cSnap.forEach(d => {
                     list.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}', event)" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm transition-all">${d.data().name}</button>`;
