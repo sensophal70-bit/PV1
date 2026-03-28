@@ -123,13 +123,6 @@
                         </div>
                         <button onclick="exportData('order', 'pdf')" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-bold italic">EXPORT ORDERS PDF</button>
                     </div>
-                    
-                    <div class="relative mb-4">
-                        <i class="fas fa-search absolute left-4 top-3 text-gray-300 text-[10px]"></i>
-                        <input type="text" id="order-search-input" placeholder="ស្វែងរកឈ្មោះម៉ូយ (Search History)..." 
-                            class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl outline-none text-[11px] font-bold italic focus:ring-1 focus:ring-blue-200">
-                    </div>
-
                     <div id="order-list" class="space-y-3 overflow-y-auto no-scrollbar pr-1 flex-grow"></div>
                 </div>
             </div>
@@ -272,28 +265,6 @@
             }
         };
 
-        // មុខងារ Render បញ្ជី Order (ប្រើសម្រាប់បង្ហាញធម្មតា និងការ Search)
-        function renderOrders(data) {
-            document.getElementById('order-list').innerHTML = data.map(o => `
-                <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center shadow-sm">
-                    <div>
-                        <div class="font-bold text-blue-900 text-[11px]">${o.customer_name}</div>
-                        <div class="text-[8px] text-gray-400">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-right font-bold text-red-600 text-[11px]">${o.total_amount}</div>
-                        <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt text-[10px]"></i></button>
-                    </div>
-                </div>`).join('');
-        }
-
-        // Logic ស្វែងរកប្រវត្តិកម្មង់
-        document.getElementById('order-search-input').onkeyup = () => {
-            const val = document.getElementById('order-search-input').value.toLowerCase();
-            const filtered = allOrders.filter(o => o.customer_name.toLowerCase().includes(val));
-            renderOrders(filtered);
-        };
-
         async function loadAll() {
             const cSnap = await getDocs(collection(db, "categories"));
             document.getElementById('cat-badges').innerHTML = "";
@@ -327,12 +298,23 @@
             document.getElementById('total-revenue').innerText = `$${revenue.toFixed(2)}`;
             document.getElementById('total-orders').innerText = allOrders.length;
 
-            renderOrders(allOrders);
+            document.getElementById('order-list').innerHTML = allOrders.map(o => `
+                <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                    <div>
+                        <div class="font-bold text-blue-900 text-[11px]">${o.customer_name}</div>
+                        <div class="text-[8px] text-gray-400">${o.createdAt?.toDate().toLocaleString('km-KH')}</div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right font-bold text-red-600 text-[11px]">${o.total_amount}</div>
+                        <button onclick="deleteOrder('${o.id}')" class="text-gray-300 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                    </div>
+                </div>`).join('');
         }
 
+        // --- NEW PDF NAVIGATION ---
         window.closePDFPreview = () => {
             document.getElementById('pdf-overlay').classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = 'auto'; // Re-enable scroll
         };
 
         window.exportData = async (target, format) => {
@@ -375,9 +357,11 @@
             area.innerHTML = html + `</tbody></table>`;
             footer.innerText = grandTotal > 0 ? `សរុបទឹកប្រាក់ចំណូល៖ $${grandTotal.toFixed(2)}` : "";
 
+            // Show Preview Overlay
             overlay.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Stop background scroll
 
+            // Final Download Trigger
             document.getElementById('btn-final-download').onclick = async () => {
                 const canvas = await html2canvas(document.getElementById('pdf-content'), { scale: 2, useCORS: true });
                 const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
