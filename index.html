@@ -3,87 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Number Only</title>
+    <title>Roththa Shop - Telegram Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
-        .modal-up.active { transform: translateY(0); }
-        .active-cat { background-color: #1e40af !important; color: white !important; }
-        
-        /* Image Pop-up Animation */
-        #image-popup-el { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.5); opacity: 0; }
-        #image-popup-el.active { transform: scale(1); opacity: 1; }
-        
-        /* លាក់ប៊ូតុងព្រួញលើ Input Number */
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        body { font-family: 'Hanuman', serif; background: linear-gradient(to bottom, #1e3a8a, #f1f5f9); min-height: 100vh; }
+        .profile-card { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body class="pb-32">
+<body class="flex items-center justify-center p-6">
 
-    <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
-
-    <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white border-b-4 border-yellow-500">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-lg font-bold italic uppercase">Roththa Shop</h1>
-            <button onclick="window.toggleHistoryModal()" class="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold border border-white/30">
-                <i class="fas fa-history mr-1"></i> ប្រវត្តិ
-            </button>
-        </div>
-        <input type="text" id="search-box" onkeyup="window.filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800">
-    </div>
-
-    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20">
-        <button onclick="window.filterByCategory('All')" class="cat-btn active-cat whitespace-nowrap px-6 py-2 bg-gray-100 rounded-full text-[10px] font-bold border">ទាំងអស់</button>
-    </div>
-
-    <div class="px-3 mt-4">
-        <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10"></div>
-    </div>
-
-    <div id="image-overlay" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-6" onclick="window.closeImagePopup()">
-        <img id="image-popup-el" src="" class="max-w-full max-h-[70vh] rounded-3xl border-4 border-white/20 shadow-2xl">
-    </div>
-
-    <div id="cart-bar" onclick="window.toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
-        <div class="flex items-center gap-3">
-            <span id="cart-count" class="bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
-            <div id="cart-total-bar" class="font-bold text-sm">$0.00</div>
-        </div>
-        <div class="text-[9px] font-bold uppercase italic text-yellow-400">មើលកន្ត្រក <i class="fas fa-chevron-right ml-1"></i></div>
-    </div>
-
-    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="window.toggleCartModal()"></div>
-    <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[85vh] flex flex-col">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-center font-bold text-blue-900 mb-4 text-xs uppercase border-b pb-2">កន្ត្រកទំនិញ</h2>
-        <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
-        <div class="mt-4 pt-4 border-t">
-            <div class="flex justify-between items-center mb-4 italic">
-                <span class="text-gray-400 text-[10px] uppercase">សរុបទូទាត់</span>
-                <span id="modal-total-price" class="text-red-600 text-2xl font-bold">$0.00</span>
+    <div id="auth-card" class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden profile-card">
+        <div class="bg-blue-800 p-8 text-center text-white relative">
+            <div class="w-24 h-24 bg-white rounded-full mx-auto p-1 shadow-xl mb-4">
+                <img id="user-photo" src="https://ui-avatars.com/api/?name=User&background=random" class="w-full h-full rounded-full object-cover">
             </div>
-            <button onclick="window.checkout()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg active:bg-blue-900">
-                <i class="fab fa-telegram-plane mr-2"></i> បញ្ជូនទៅ Telegram
-            </button>
+            <h2 id="user-fullname" class="text-xl font-bold italic">កំពុងទាញទិន្នន័យ...</h2>
+            <p id="user-id-display" class="text-[10px] opacity-60 tracking-widest mt-1">ID: 000000000</p>
         </div>
-    </div>
 
-    <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleHistoryModal()"></div>
-    <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-        <h2 class="text-center font-bold text-gray-800 mb-4 text-xs border-b pb-2 italic">ប្រវត្តិការកម្មង់</h2>
-        <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar"></div>
-        <button onclick="window.clearHistory()" class="text-center text-red-400 text-[10px] underline my-4">សម្អាតប្រវត្តិ</button>
+        <div class="p-8 space-y-6">
+            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">ឈ្មោះអតិថិជន</p>
+                    <p id="info-name" class="text-sm font-bold text-gray-700">...</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                    <i class="fab fa-telegram-plane"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">ស្ថានភាព</p>
+                    <p class="text-sm font-bold text-green-600 italic">ភ្ជាប់ជាមួយ Telegram រួចរាល់</p>
+                </div>
+            </div>
+
+            <div class="pt-4 space-y-3">
+                <button onclick="window.location.href='index.html'" class="w-full bg-blue-800 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">
+                    <i class="fas fa-shopping-cart mr-2"></i> ចូលទៅកាន់ហាង
+                </button>
+                <p class="text-center text-[9px] text-gray-400">ទិន្នន័យរបស់អ្នកត្រូវបានរក្សាទុកដោយសុវត្ថិភាពក្នុង Roththa Shop</p>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -96,169 +70,51 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let allProducts = [], cart = [];
 
-        // --- Global Functions ---
-        window.openImagePopup = (src) => {
-            const el = document.getElementById('image-overlay');
-            const img = document.getElementById('image-popup-el');
-            img.src = src;
-            el.classList.remove('hidden');
-            setTimeout(() => img.classList.add('active'), 10);
-        };
+        // ហៅ Telegram WebApp Object
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // ពង្រីក Screen ឱ្យពេញ
 
-        window.closeImagePopup = () => {
-            const el = document.getElementById('image-overlay');
-            const img = document.getElementById('image-popup-el');
-            img.classList.remove('active');
-            setTimeout(() => el.classList.add('hidden'), 300);
-        };
+        async function loginWithTelegram() {
+            const user = tg.initDataUnsafe?.user;
 
-        window.addToCart = (id) => {
-            document.getElementById('click-sound').play().catch(()=>{});
-            const p = allProducts.find(i => i.id === id);
-            const found = cart.find(i => i.id === id);
-            if(found) found.qty++; else cart.push({...p, qty: 1});
-            window.updateCartUI();
-        };
+            if (user) {
+                const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                const userId = user.id.toString();
+                const photoUrl = user.photo_url || `https://ui-avatars.com/api/?name=${fullName}&background=random`;
 
-        window.changeQty = (id, delta) => {
-            const item = cart.find(i => i.id === id);
-            if(item) {
-                item.qty = Math.max(1, item.qty + delta);
-                window.updateCartUI();
+                // បង្ហាញលើ UI
+                document.getElementById('user-fullname').innerText = fullName;
+                document.getElementById('info-name').innerText = fullName;
+                document.getElementById('user-id-display').innerText = `ID: ${userId}`;
+                document.getElementById('user-photo').src = photoUrl;
+
+                // រក្សាទុកក្នុង Firebase Firestore (ជា Account របស់គាត់)
+                try {
+                    const userRef = doc(db, "customers", userId);
+                    await setDoc(userRef, {
+                        telegram_id: userId,
+                        name: fullName,
+                        username: user.username || 'N/A',
+                        photo: photoUrl,
+                        last_login: new Date()
+                    }, { merge: true });
+
+                    // រក្សាទុកក្នុង LocalStorage ដើម្បីប្រើក្នុងទំព័រ index.html
+                    localStorage.setItem('current_customer', JSON.stringify({id: userId, name: fullName}));
+                    
+                } catch (e) {
+                    console.error("Error saving user:", e);
+                }
+            } else {
+                // បើបើកលើ Browser ធម្មតា (មិនមែនក្នុង Telegram)
+                document.getElementById('user-fullname').innerText = "សួស្តី ភ្ញៀវកិត្តិយស";
+                document.getElementById('info-name').innerText = "Guest User";
             }
-        };
-
-        // មុខងារនេះត្រូវបានកែសម្រួលដើម្បីឱ្យទទួលតែលេខ
-        window.updateManualQty = (id, value) => {
-            const item = cart.find(i => i.id === id);
-            if(item) {
-                let v = parseInt(value);
-                item.qty = (isNaN(v) || v < 1) ? 1 : v;
-                window.updateCartUI();
-            }
-        };
-
-        window.removeFromCart = (id) => {
-            if(confirm("លុបទំនិញនេះ?")) {
-                cart = cart.filter(i => i.id !== id);
-                window.updateCartUI();
-            }
-        };
-
-        window.updateCartUI = () => {
-            const count = cart.reduce((s, i) => s + i.qty, 0);
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
-            document.getElementById('cart-count').innerText = count;
-            document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
-            
-            document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                    <img src="${item.img}" class="w-10 h-10 object-cover rounded-lg border">
-                    <div class="flex-grow">
-                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
-                        <div class="text-blue-600 font-bold text-[9px]">$${item.price.toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center bg-white px-2 py-1 rounded-full border shadow-sm">
-                            <button onclick="window.changeQty('${item.id}', -1)" class="px-2 text-xs text-gray-400">-</button>
-                            
-                            <input type="number" 
-                                   inputmode="numeric" 
-                                   pattern="[0-9]*"
-                                   value="${item.qty}" 
-                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                   onchange="window.updateManualQty('${item.id}', this.value)" 
-                                   class="w-9 text-center font-bold text-[10px] border-none outline-none p-0 bg-transparent">
-                            
-                            <button onclick="window.changeQty('${item.id}', 1)" class="px-2 text-xs text-blue-500">+</button>
-                        </div>
-                        <button onclick="window.removeFromCart('${item.id}')" class="w-8 h-8 bg-red-50 text-red-500 rounded-full border border-red-100"><i class="fas fa-trash-alt text-[9px]"></i></button>
-                    </div>
-                </div>`).join('');
-        };
-
-        window.toggleCartModal = () => {
-            document.getElementById('cart-modal').classList.toggle('active');
-            const o = document.getElementById('overlay');
-            o.classList.toggle('hidden');
-            setTimeout(() => o.classList.toggle('opacity-0'), 10);
-        };
-
-        window.toggleHistoryModal = () => {
-            const m = document.getElementById('history-modal');
-            const o = document.getElementById('history-overlay');
-            m.classList.toggle('active'); o.classList.toggle('hidden');
-            if(m.classList.contains('active')) {
-                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-white p-3 rounded-xl border mb-2 text-[9px] shadow-sm text-left">
-                        <div class="flex justify-between font-bold text-blue-800 mb-1">
-                            <span>${o.date}</span>
-                            <span class="text-red-600">$${o.total.toFixed(2)}</span>
-                        </div>
-                        <div class="text-gray-500 italic">${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</div>
-                    </div>`).join('') || "<p class='text-center py-6 text-gray-400'>គ្មានប្រវត្តិកម្មង់</p>";
-            }
-        };
-
-        window.clearHistory = () => { if(confirm("លុបប្រវត្តិទាំងអស់?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
-
-        window.checkout = async () => {
-            const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-            const history = JSON.parse(localStorage.getItem('my_orders') || "[]");
-            history.unshift({ date: new Date().toLocaleString('km-KH'), total: total, items: [...cart] });
-            localStorage.setItem('my_orders', JSON.stringify(history.slice(0, 15)));
-
-            const message = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n💰 *សរុប: $${total.toFixed(2)}*\n\n` + cart.map(i => `• ${i.name} (x${i.qty})`).join('\n');
-            await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: "7453536903", text: message, parse_mode: "Markdown" })
-            });
-            alert("✅ រួចរាល់!"); cart = []; window.updateCartUI(); window.toggleCartModal();
-        };
-
-        window.filterByCategory = (cat) => {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-cat'));
-            event.target.classList.add('active-cat');
-            renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
-        };
-
-        window.filterProducts = () => {
-            const v = document.getElementById('search-box').value.toLowerCase();
-            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v)));
-        };
-
-        function renderProducts(data) {
-            document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-                    <div onclick="window.openImagePopup('${p.img}')" class="w-full aspect-square mb-1.5 overflow-hidden rounded-lg bg-gray-50 border">
-                        <img src="${p.img}" class="w-full h-full object-cover active:scale-110 transition-transform">
-                    </div>
-                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
-                    <div class="text-red-600 font-bold text-[10px] mb-1.5">$${p.price.toFixed(2)}</div>
-                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold shadow-md active:scale-90 transition-all">បន្ថែម</button>
-                </div>`).join('');
         }
 
-        async function init() {
-            try {
-                const cSnap = await getDocs(collection(db, "categories"));
-                const catList = document.getElementById('cat-list');
-                cSnap.forEach(d => {
-                    catList.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}')" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm">${d.data().name}</button>`;
-                });
-
-                const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-                allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderProducts(allProducts);
-            } catch (e) { console.error(e); }
-        }
-
-        init();
+        // ដំណើរការពេលបើក Page
+        loginWithTelegram();
     </script>
 </body>
 </html>
