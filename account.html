@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Roththa Shop - Customer Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .hidden { display: none; }
+        .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
+        .modal-up.active { transform: translateY(0); }
+        #image-popup-el { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.5); opacity: 0; }
+        #image-popup-el.active { transform: scale(1); opacity: 1; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-page" class="fixed inset-0 bg-white z-[200] flex flex-col items-center justify-center p-8 hidden">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-blue-800 rounded-3xl mx-auto flex items-center justify-center mb-4 shadow-xl text-white text-4xl">
+                    <i class="fas fa-user-lock"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-blue-900 italic">ROTHTHA SHOP</h1>
+                <p id="auth-title" class="text-gray-400 text-xs mt-1">សូមចូលប្រើប្រាស់គណនីរបស់បង</p>
+            </div>
+
+            <div id="login-form" class="space-y-4">
+                <input type="email" id="login-email" placeholder="អ៊ីមែល (Email)" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-blue-500 text-sm shadow-inner">
+                <input type="password" id="login-pass" placeholder="លេខសម្ងាត់" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-blue-500 text-sm shadow-inner">
+                <button onclick="window.handleAuth('login')" class="w-full bg-blue-800 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">ចូលប្រើប្រាស់</button>
+                <p class="text-center text-[11px] text-gray-500">មិនទាន់មានគណនី? <span onclick="window.toggleAuth(true)" class="text-blue-700 font-bold cursor-pointer underline">ចុះឈ្មោះថ្មី</span></p>
+            </div>
+
+            <div id="register-form" class="space-y-4 hidden">
+                <input type="text" id="reg-name" placeholder="ឈ្មោះពេញ" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-green-500 text-sm shadow-inner">
+                <input type="email" id="reg-email" placeholder="អ៊ីមែលថ្មី" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-green-500 text-sm shadow-inner">
+                <input type="password" id="reg-pass" placeholder="បង្កើតលេខសម្ងាត់" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-green-500 text-sm shadow-inner">
+                <button onclick="window.handleAuth('register')" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">ចុះឈ្មោះឥឡូវនេះ</button>
+                <p class="text-center text-[11px] text-gray-500">មានគណនីរួចហើយ? <span onclick="window.toggleAuth(false)" class="text-blue-700 font-bold cursor-pointer underline">ត្រឡប់ទៅ Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-shop" class="hidden pb-32">
+        <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white border-b-4 border-yellow-500">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <p class="text-[10px] opacity-70">រីករាយស្វាគមន៍,</p>
+                    <h1 id="user-name" class="text-sm font-bold italic">...</h1>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.toggleHistoryModal()" class="bg-white/20 p-2 rounded-xl text-xs border border-white/20"><i class="fas fa-history"></i></button>
+                    <button onclick="window.logout()" class="bg-red-500/80 p-2 rounded-xl text-xs border border-white/20"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+            <input type="text" id="search-box" onkeyup="window.filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800">
+        </div>
+
+        <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20">
+            <button onclick="window.filterByCategory('All')" class="cat-btn bg-blue-800 text-white whitespace-nowrap px-6 py-2 rounded-full text-[10px] font-bold border">ទាំងអស់</button>
+        </div>
+        <div class="px-3 mt-4">
+            <div id="product-grid" class="grid grid-cols-3 gap-2"></div>
+        </div>
+    </div>
+
+    <div id="image-overlay" class="fixed inset-0 bg-black/90 z-[300] hidden flex items-center justify-center p-6" onclick="window.closeImagePopup()">
+        <img id="image-popup-el" src="" class="max-w-full max-h-[70vh] rounded-3xl border-4 border-white/20 shadow-2xl">
+    </div>
+
+    <div id="cart-bar" onclick="window.toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
+        <div class="flex items-center gap-3">
+            <span id="cart-count" class="bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
+            <div id="cart-total-bar" class="font-bold text-sm">$0.00</div>
+        </div>
+        <div class="text-[9px] font-bold uppercase italic text-yellow-400">កន្ត្រកទំនិញ <i class="fas fa-chevron-right ml-1"></i></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
+            authDomain: "roththa-shop.firebaseapp.com",
+            projectId: "roththa-shop",
+            storageBucket: "roththa-shop.firebasestorage.app",
+            messagingSenderId: "570621300574",
+            appId: "1:570621300574:web:5448479ab7727038e9c402"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Auth State Logic (រក្សាទុកការ Login) ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-page').classList.add('hidden');
+                document.getElementById('main-shop').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName || "អតិថិជន";
+                initShop();
+            } else {
+                document.getElementById('auth-page').classList.remove('hidden');
+                document.getElementById('main-shop').classList.add('hidden');
+            }
+        });
+
+        window.toggleAuth = (isReg) => {
+            document.getElementById('login-form').classList.toggle('hidden', isReg);
+            document.getElementById('register-form').classList.toggle('hidden', !isReg);
+            document.getElementById('auth-title').innerText = isReg ? "បង្កើតគណនីថ្មីរបស់អ្នក" : "សូមចូលប្រើប្រាស់គណនីរបស់បង";
+        };
+
+        window.handleAuth = async (type) => {
+            try {
+                if (type === 'register') {
+                    const name = document.getElementById('reg-name').value;
+                    const email = document.getElementById('reg-email').value;
+                    const pass = document.getElementById('reg-pass').value;
+                    if(!name || !email || pass.length < 6) return alert("សូមបំពេញព័ត៌មានឱ្យគ្រប់ (Password យ៉ាងតិច 6 ខ្ទង់)");
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(res.user, { displayName: name });
+                } else {
+                    const email = document.getElementById('login-email').value;
+                    const pass = document.getElementById('login-pass').value;
+                    await signInWithEmailAndPassword(auth, email, pass);
+                }
+            } catch (e) { alert("កំហុស: " + e.message); }
+        };
+
+        window.logout = () => { if(confirm("តើបងចង់ចាកចេញមែនទេ?")) signOut(auth); };
+
+        // --- Shop & Product Logic ---
+        let allProducts = [], cart = [];
+        window.openImagePopup = (src) => {
+            const el = document.getElementById('image-overlay');
+            const img = document.getElementById('image-popup-el');
+            img.src = src; el.classList.remove('hidden');
+            setTimeout(() => img.classList.add('active'), 10);
+        };
+        window.closeImagePopup = () => {
+            const img = document.getElementById('image-popup-el');
+            img.classList.remove('active');
+            setTimeout(() => document.getElementById('image-overlay').classList.add('hidden'), 300);
+        };
+
+        // មុខងារដទៃទៀត (addToCart, updateCartUI, filterProducts...) គឺបងប្រើតាមកូដចាស់របស់បងបានភ្លាមៗ!
+        // គ្រាន់តែចាំថារាល់ Function ត្រូវដាក់ window. ពីមុខជានិច្ច។
+
+        async function initShop() {
+            const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+            allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            renderProducts(allProducts);
+        }
+
+        function renderProducts(data) {
+            document.getElementById('product-grid').innerHTML = data.map(p => `
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                    <div onclick="window.openImagePopup('${p.img}')" class="w-full aspect-square mb-1.5 overflow-hidden rounded-lg bg-gray-50 border">
+                        <img src="${p.img}" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
+                    <div class="text-red-600 font-bold text-[10px] mb-1.5">$${p.price.toFixed(2)}</div>
+                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold shadow-md">បន្ថែម</button>
+                </div>`).join('');
+        }
+
+        initShop();
+    </script>
+</body>
+</html>
