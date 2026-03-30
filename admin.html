@@ -3,111 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Admin - Ultimate Control</title>
+    <title>Roththa Admin - Full Pro System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f4f7f6; }
-        .card { background: white; border-radius: 1.5rem; padding: 1.2rem; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 1.5rem; padding: 1.2rem; border: 1px solid #e2e8f0; }
         .hidden-panel { display: none; }
-        .selected-row { background-color: #f0f7ff !important; border-left: 4px solid #3b82f6; }
+        .selected-row { background-color: #eff6ff !important; border-left: 4px solid #2563eb; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="p-2 md:p-6">
 
-    <div id="login-panel" class="max-w-md mx-auto mt-20 bg-white p-10 rounded-[2.5rem] shadow-2xl text-center">
-        <h1 class="font-bold text-blue-900 text-2xl mb-6 italic uppercase underline">Admin Login</h1>
+    <div id="login-panel" class="max-w-md mx-auto mt-20 bg-white p-10 rounded-[2.5rem] shadow-2xl text-center border">
+        <h1 class="font-bold text-blue-900 text-xl mb-6 underline italic">ADMIN FULL CONTROL</h1>
         <input type="password" id="admin-pass" placeholder="លេខកូដសម្ងាត់..." class="w-full p-4 bg-gray-50 border rounded-2xl outline-none text-center mb-4 focus:ring-2 ring-blue-500">
-        <button id="login-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">ចូលប្រព័ន្ធ</button>
+        <button id="login-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">ចូលប្រព័ន្ធ</button>
     </div>
 
     <div id="admin-main" class="hidden-panel max-w-7xl mx-auto space-y-6">
         
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border">
-            <button onclick="window.goBack()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-all">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
+            <button onclick="window.goBack()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-xs hover:bg-red-50 hover:text-red-600">
                 <i class="fas fa-arrow-left mr-2"></i> ចាកចេញ (Back)
             </button>
-            <h2 class="font-bold text-blue-900 text-sm md:text-base italic uppercase tracking-widest">Roththa Shop Management</h2>
-            <button onclick="window.loadAll()" class="text-blue-500 hover:rotate-180 transition-all duration-500"><i class="fas fa-sync-alt fa-lg"></i></button>
+            <h2 class="font-bold text-blue-900 italic uppercase">Roththa Shop Management</h2>
+            <button onclick="window.loadAll()" class="text-blue-600"><i class="fas fa-sync-alt fa-lg"></i></button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <div class="lg:col-span-4 space-y-6">
                 <div class="card border-t-8 border-blue-600">
-                    <h2 class="font-bold text-slate-800 mb-4 text-xs italic underline">គ្រប់គ្រងទំនិញ</h2>
+                    <h2 id="form-title" class="font-bold text-slate-800 mb-4 text-xs italic underline">បញ្ចូល/កែសម្រួលទំនិញ</h2>
+                    <input type="hidden" id="edit-id">
                     <div class="space-y-3">
                         <input type="text" id="p-name" placeholder="ឈ្មោះទំនិញ" class="w-full p-3 bg-gray-50 border rounded-xl text-xs outline-none">
                         <div class="flex gap-2">
-                            <select id="p-cat-select" class="w-1/2 p-3 bg-blue-50 border rounded-xl text-[10px] font-bold text-blue-700 outline-none"></select>
-                            <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-1/2 p-3 bg-emerald-50 border rounded-xl text-xs font-bold text-emerald-700">
+                            <select id="p-cat-select" class="w-1/2 p-3 bg-blue-50 border rounded-xl text-[10px] font-bold text-blue-700"></select>
+                            <select id="p-sup-select" class="w-1/2 p-3 bg-orange-50 border rounded-xl text-[10px] font-bold text-orange-700"></select>
                         </div>
-                        <input type="number" id="p-stock" placeholder="ចំនួនស្តុក" class="w-full p-3 bg-gray-50 border rounded-xl text-xs">
+                        <div class="flex gap-2">
+                            <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-1/2 p-3 bg-emerald-50 border rounded-xl text-xs font-bold">
+                            <input type="number" id="p-stock" placeholder="ស្តុក" class="w-1/2 p-3 bg-gray-50 border rounded-xl text-xs">
+                        </div>
                         <input type="file" id="p-file" class="w-full text-[10px] text-gray-400 border border-dashed p-2 rounded-xl">
                         <input type="hidden" id="p-img">
-                        <button onclick="window.saveProduct()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md text-xs uppercase">រក្សាទុកទំនិញ</button>
+                        <div class="flex gap-2">
+                            <button id="save-btn" onclick="window.saveProduct()" class="flex-grow bg-blue-600 text-white py-3 rounded-xl font-bold text-xs shadow-md">រក្សាទុក</button>
+                            <button id="cancel-btn" onclick="window.clearForm()" class="hidden bg-gray-400 text-white px-4 rounded-xl text-xs font-bold">បោះបង់</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-t-8 border-slate-800">
+                    <h2 class="font-bold text-slate-800 mb-4 text-xs italic">កំណត់ប្រភេទ និង Supplier</h2>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="cat-input" placeholder="ឈ្មោះប្រភេទ..." class="flex-grow p-2 bg-gray-50 border rounded-xl text-[10px]">
+                        <button onclick="window.addCategory()" class="bg-blue-500 text-white px-3 rounded-xl text-xs font-bold">+</button>
+                    </div>
+                    <div class="space-y-2">
+                        <input type="text" id="sup-name-input" placeholder="ឈ្មោះ Supplier..." class="w-full p-2 bg-gray-50 border rounded-xl text-[10px]">
+                        <div class="flex gap-2">
+                            <input type="text" id="sup-phone-input" placeholder="លេខទូរសព្ទ..." class="flex-grow p-2 bg-gray-50 border rounded-xl text-[10px]">
+                            <button onclick="window.addSupplier()" class="bg-orange-500 text-white px-3 rounded-xl text-xs font-bold">+</button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card border-t-8 border-red-600">
-                    <h2 class="font-bold text-red-600 mb-4 text-xs italic uppercase">គ្រោះថ្នាក់ (Danger Zone)</h2>
+                    <h2 class="font-bold text-red-600 mb-3 text-[10px] uppercase">លុបទិន្នន័យទាំងអស់</h2>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="window.deleteAll('products')" class="bg-red-100 text-red-600 p-3 rounded-xl text-[10px] font-bold hover:bg-red-600 hover:text-white transition-all">
-                            <i class="fas fa-trash mr-1"></i> លុបស្តុកទាំងអស់
-                        </button>
-                        <button onclick="window.deleteAll('orders')" class="bg-orange-100 text-orange-600 p-3 rounded-xl text-[10px] font-bold hover:bg-orange-600 hover:text-white transition-all">
-                            <i class="fas fa-history mr-1"></i> លុបប្រវត្តិលក់
-                        </button>
+                        <button onclick="window.deleteAll('products')" class="bg-red-100 text-red-600 p-2 rounded-xl text-[9px] font-bold">លុបស្តុកទាំងអស់</button>
+                        <button onclick="window.deleteAll('orders')" class="bg-orange-100 text-orange-600 p-2 rounded-xl text-[9px] font-bold">លុបប្រវត្តិលក់</button>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-8 space-y-6">
-                
-                <div id="export-area-stock" class="card h-[500px] flex flex-col overflow-hidden">
+                <div id="export-area-stock" class="card flex flex-col bg-white">
                     <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-                        <h2 class="font-bold text-blue-900 text-xs italic uppercase">បញ្ជីស្តុកផលិតផល</h2>
+                        <h2 class="font-bold text-blue-900 text-xs italic uppercase">របាយការណ៍ស្តុក</h2>
                         <div class="flex gap-2">
-                            <button onclick="window.exportToPDF('export-area-stock', 'Stock_All', false)" class="bg-gray-800 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase">Export All</button>
-                            <button onclick="window.exportToPDF('export-area-stock', 'Stock_Selected', true)" class="bg-red-600 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase">Export Selected</button>
+                            <input type="text" onkeyup="window.searchTable('product-table-body', this.value)" placeholder="ស្វែងរក..." class="p-2 border rounded-xl text-[10px] w-24 outline-none">
+                            <button onclick="window.exportToPDF('export-area-stock', 'Stock_Report', true, 'p-check')" class="bg-red-600 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase shadow-md">Export PDF</button>
                         </div>
                     </div>
-                    <div class="overflow-y-auto no-scrollbar flex-grow">
-                        <table class="w-full text-left text-[11px]">
-                            <thead class="sticky top-0 bg-white border-b text-gray-400 z-10">
-                                <tr>
-                                    <th class="py-2"><input type="checkbox" id="check-all-p" onclick="window.selectAll('p-check', this)"></th>
-                                    <th>រូប</th><th>ឈ្មោះ</th><th>ប្រភេទ</th><th class="text-center">ស្តុក</th><th class="text-right">តម្លៃ</th><th class="text-center">Action</th>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse">
+                            <thead>
+                                <tr class="border-b text-gray-400 text-[9px] uppercase">
+                                    <th class="py-2"><input type="checkbox" id="all-p" onclick="window.selectAll('p-check', this)"></th>
+                                    <th>រូប</th><th>ឈ្មោះ</th><th class="text-center">ស្តុក</th><th class="text-right">តម្លៃរាយ</th><th class="text-right px-2">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="product-table-body"></tbody>
+                            <tfoot id="stock-footer" class="bg-gray-50 font-bold border-t-2 border-blue-600"></tfoot>
                         </table>
                     </div>
                 </div>
 
-                <div id="export-area-order" class="card h-[450px] flex flex-col overflow-hidden border-l-8 border-emerald-500">
+                <div id="export-area-order" class="card flex flex-col border-l-8 border-emerald-500 bg-white">
                     <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-                        <h2 class="font-bold text-emerald-700 text-xs italic uppercase">ប្រវត្តិការលក់</h2>
+                        <h2 class="font-bold text-emerald-700 text-xs italic uppercase">របាយការណ៍លក់</h2>
                         <div class="flex gap-2">
-                            <button onclick="window.exportToPDF('export-area-order', 'Orders_All', false)" class="bg-gray-800 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase">Export All</button>
-                            <button onclick="window.exportToPDF('export-area-order', 'Orders_Selected', true)" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase">Export Selected</button>
+                            <input type="text" onkeyup="window.searchOrders(this.value)" placeholder="ឈ្មោះភ្ញៀវ..." class="p-2 border rounded-xl text-[10px] w-24 outline-none">
+                            <button onclick="window.exportToPDF('export-area-order', 'Sales_Report', true, 'o-check')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-bold uppercase shadow-md">Export PDF</button>
                         </div>
                     </div>
-                    <div id="order-history-list" class="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse">
+                            <thead>
+                                <tr class="border-b text-gray-400 text-[9px] uppercase">
+                                    <th class="py-2"><input type="checkbox" id="all-o" onclick="window.selectAll('o-check', this)"></th>
+                                    <th>អតិថិជន/កាលបរិច្ឆេទ</th><th>ទំនិញ</th><th class="text-right px-2">សរុប</th><th class="text-center">លុប</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-table-body"></tbody>
+                            <tfoot id="order-footer" class="bg-gray-50 font-bold border-t-2 border-emerald-600"></tfoot>
+                        </table>
+                    </div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -127,103 +154,156 @@
                 document.getElementById('login-panel').classList.add('hidden-panel');
                 document.getElementById('admin-main').classList.remove('hidden-panel');
                 window.loadAll();
-            } else { alert("លេខកូដខុស!"); }
+            } else { alert("Wrong Password!"); }
         };
 
         window.goBack = () => {
-            if(confirm("តើបងចង់ចាកចេញមែនទេ?")) {
-                document.getElementById('admin-main').classList.add('hidden-panel');
-                document.getElementById('login-panel').classList.remove('hidden-panel');
-                document.getElementById('admin-pass').value = "";
-            }
+            document.getElementById('admin-main').classList.add('hidden-panel');
+            document.getElementById('login-panel').classList.remove('hidden-panel');
         };
 
-        // --- LOAD DATA ---
+        // --- LOAD DATA & CALCULATE TOTAL ---
         window.loadAll = async () => {
             const cSnap = await getDocs(query(collection(db, "categories"), orderBy("name")));
+            const sSnap = await getDocs(query(collection(db, "suppliers"), orderBy("name")));
             const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
             const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
 
-            const catSel = document.getElementById('p-cat-select');
-            catSel.innerHTML = `<option value="">-- ប្រភេទ --</option>`;
-            cSnap.forEach(d => catSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+            // Dropdowns
+            const cSel = document.getElementById('p-cat-select');
+            const sSel = document.getElementById('p-sup-select');
+            cSel.innerHTML = `<option value="">-- ប្រភេទ --</option>`;
+            sSel.innerHTML = `<option value="">-- Supplier --</option>`;
+            cSnap.forEach(d => cSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+            sSnap.forEach(d => sSel.innerHTML += `<option value="${d.data().name}">${d.data().name} (${d.data().phone || ''})</option>`);
 
+            // Stock Table
             const pBody = document.getElementById('product-table-body');
+            let tStock = 0, tValue = 0;
             pBody.innerHTML = "";
             pSnap.forEach(d => {
                 const p = d.data();
+                tStock += (p.stock || 0); tValue += (p.stock * p.price || 0);
                 pBody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50 transition-all row-item" id="p-row-${d.id}">
-                        <td class="py-3"><input type="checkbox" class="p-check" data-id="${d.id}" onclick="window.rowHighlight('p-row-${d.id}', this)"></td>
-                        <td><img src="${p.img || ''}" class="w-8 h-8 rounded border object-cover"></td>
-                        <td class="font-bold text-blue-900">${p.name}</td>
-                        <td class="text-gray-400 text-[9px] uppercase">${p.category}</td>
-                        <td class="text-center font-bold text-orange-600">${p.stock}</td>
-                        <td class="text-right font-bold text-emerald-600">$${(p.price || 0).toFixed(2)}</td>
-                        <td class="text-center"><button onclick="window.deleteOne('products','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></td>
+                    <tr class="border-b row-item" id="p-row-${d.id}">
+                        <td class="py-2"><input type="checkbox" class="p-check" data-id="${d.id}" onclick="window.rowHigh('${d.id}', this, 'p')"></td>
+                        <td><img src="${p.img || ''}" class="w-7 h-7 rounded object-cover border"></td>
+                        <td class="font-bold text-blue-900 text-[10px]">${p.name}</td>
+                        <td class="text-center font-bold text-orange-600">${p.stock || 0}</td>
+                        <td class="text-right">$${(p.price || 0).toFixed(2)}</td>
+                        <td class="text-right px-2">
+                            <button onclick="window.editProduct('${d.id}')" class="text-blue-400 mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="window.deleteOne('products','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                        </td>
                     </tr>`;
             });
+            document.getElementById('stock-footer').innerHTML = `<tr><td colspan="3" class="p-2">សរុបរួម:</td><td class="text-center text-orange-600">${tStock}</td><td class="text-right px-2 text-blue-700">$${tValue.toFixed(2)}</td><td></td></tr>`;
 
-            const oBody = document.getElementById('order-history-list');
+            // Orders Table
+            const oBody = document.getElementById('order-table-body');
+            let tSales = 0;
             oBody.innerHTML = "";
+            window.allOrders = oSnap.docs;
             oSnap.forEach(d => {
                 const o = d.data();
+                const amt = parseFloat(o.total_amount?.toString().replace('$', '')) || 0;
+                tSales += amt;
                 oBody.innerHTML += `
-                    <div class="p-3 bg-gray-50 rounded-xl border border-dashed relative group row-item" id="o-row-${d.id}">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" class="o-check" data-id="${d.id}" onclick="window.rowHighlight('o-row-${d.id}', this)">
-                            <div class="flex-grow">
-                                <div class="flex justify-between">
-                                    <span class="font-bold text-blue-900 text-[10px]">${o.customer_name || 'Guest'}</span>
-                                    <span class="text-red-600 font-bold text-[10px]">${o.total_amount}</span>
-                                </div>
-                                <div class="text-[9px] text-gray-500 mt-1">
-                                    ${o.items ? o.items.map(i => i.name + " x" + i.qty).join(", ") : ""}
-                                </div>
-                            </div>
-                            <button onclick="window.deleteOne('orders','${d.id}')" class="text-gray-300 hover:text-red-500 ml-2"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>`;
+                    <tr class="border-b row-item" id="o-row-${d.id}">
+                        <td class="py-2"><input type="checkbox" class="o-check" data-id="${d.id}" onclick="window.rowHigh('${d.id}', this, 'o')"></td>
+                        <td><div class="font-bold text-blue-900">${o.customer_name || 'Guest'}</div><div class="text-[8px] text-gray-400">${o.createdAt?.toDate().toLocaleDateString('km-KH') || ''}</div></td>
+                        <td class="text-[9px] text-gray-500">${o.items ? o.items.map(i => i.name + " x" + i.qty).join(", ") : ""}</td>
+                        <td class="text-right font-bold text-red-600 px-2">$${amt.toFixed(2)}</td>
+                        <td class="text-center"><button onclick="window.deleteOne('orders','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-times-circle"></i></button></td>
+                    </tr>`;
             });
+            document.getElementById('order-footer').innerHTML = `<tr><td colspan="3" class="p-2">ចំណូលសរុប:</td><td class="text-right px-2 text-red-700">$${tSales.toFixed(2)}</td><td></td></tr>`;
         };
 
-        // --- DELETE FUNCTIONS ---
+        // --- PRODUCT ACTIONS ---
+        window.saveProduct = async () => {
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                name: document.getElementById('p-name').value,
+                category: document.getElementById('p-cat-select').value,
+                supplier: document.getElementById('p-sup-select').value,
+                price: parseFloat(document.getElementById('p-price').value) || 0,
+                stock: parseInt(document.getElementById('p-stock').value) || 0,
+                img: document.getElementById('p-img').value,
+                updatedAt: serverTimestamp()
+            };
+            if(!data.name) return alert("Please input name!");
+            if(id) { await updateDoc(doc(db, "products", id), data); alert("Updated!"); }
+            else { data.createdAt = serverTimestamp(); await addDoc(collection(db, "products"), data); alert("Saved!"); }
+            window.clearForm(); window.loadAll();
+        };
+
+        window.editProduct = async (id) => {
+            const d = await getDoc(doc(db, "products", id));
+            const p = d.data();
+            document.getElementById('edit-id').value = id;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-cat-select').value = p.category;
+            document.getElementById('p-sup-select').value = p.supplier;
+            document.getElementById('p-price').value = p.price;
+            document.getElementById('p-stock').value = p.stock;
+            document.getElementById('p-img').value = p.img || "";
+            document.getElementById('form-title').innerText = "កំពុងកែសម្រួល...";
+            document.getElementById('cancel-btn').classList.remove('hidden');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        window.clearForm = () => {
+            document.getElementById('edit-id').value = "";
+            document.getElementById('p-name').value = "";
+            document.getElementById('form-title').innerText = "បញ្ចូល/កែសម្រួលទំនិញ";
+            document.getElementById('cancel-btn').classList.add('hidden');
+        };
+
+        // --- MASTER DATA ---
+        window.addCategory = async () => {
+            const v = document.getElementById('cat-input').value;
+            if(v) { await addDoc(collection(db, "categories"), {name: v}); window.loadAll(); document.getElementById('cat-input').value=""; }
+        };
+
+        window.addSupplier = async () => {
+            const n = document.getElementById('sup-name-input').value;
+            const p = document.getElementById('sup-phone-input').value;
+            if(n) { await addDoc(collection(db, "suppliers"), {name: n, phone: p}); window.loadAll(); document.getElementById('sup-name-input').value=""; document.getElementById('sup-phone-input').value=""; }
+        };
+
+        // --- DELETE ---
         window.deleteOne = async (col, id) => {
-            if(confirm("តើបងពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
-                await deleteDoc(doc(db, col, id));
-                window.loadAll();
-            }
+            if(confirm("លុបទិន្នន័យនេះ?")) { await deleteDoc(doc(db, col, id)); window.loadAll(); }
         };
 
         window.deleteAll = async (col) => {
-            if(confirm(`⚠️ ប្រយ័ត្ន! តើបងពិតជាចង់លុបទិន្នន័យក្នុង ${col} ទាំងអស់មែនទេ? វាមិនអាចយកមកវិញបានឡើយ!`)) {
+            if(confirm(`⚠️ លុបទាំងអស់ក្នុង ${col}? មិនអាចយកវិញបានទេ!`)) {
                 const snap = await getDocs(collection(db, col));
                 const batch = writeBatch(db);
                 snap.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                alert("បានលុបទាំងអស់ដោយជោគជ័យ!");
-                window.loadAll();
+                await batch.commit(); window.loadAll();
             }
         };
 
-        // --- EXPORT PDF (ALL & SELECTED) ---
-        window.exportToPDF = async (elID, fileName, onlySelected) => {
+        // --- PDF EXPORT ---
+        window.exportToPDF = async (elID, name, useSelection, chkClass) => {
             const container = document.getElementById(elID);
             const items = container.querySelectorAll('.row-item');
+            let hasSelection = false;
             
-            // ប្រសិនបើជ្រើសរើស Selected គឺត្រូវលាក់អាដែលមិនបាន Check
-            if(onlySelected) {
-                let count = 0;
-                items.forEach(item => {
-                    const chk = item.querySelector('input[type="checkbox"]');
-                    if(!chk.checked) item.style.display = 'none';
-                    else count++;
+            if(useSelection) {
+                items.forEach(i => {
+                    const c = i.querySelector('.' + chkClass);
+                    if(c && c.checked) hasSelection = true;
                 });
-                if(count === 0) {
-                    alert("សូមជ្រើសរើសទិន្នន័យជាមុនសិន!");
-                    items.forEach(i => i.style.display = ''); // បង្ហាញវិញ
-                    return;
-                }
+            }
+
+            if(hasSelection) {
+                items.forEach(i => {
+                    const c = i.querySelector('.' + chkClass);
+                    if(!c.checked) i.style.display = 'none';
+                });
             }
 
             const canvas = await html2canvas(container, { scale: 2 });
@@ -232,48 +312,37 @@
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfW = pdf.internal.pageSize.getWidth();
             const pdfH = (canvas.height * pdfW) / canvas.width;
-            
             pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
-            pdf.save(`${fileName}_${new Date().toLocaleDateString()}.pdf`);
-
-            // បង្ហាញទិន្នន័យដែលលាក់មកវិញ
-            items.forEach(i => i.style.display = '');
+            pdf.save(`${name}.pdf`);
+            
+            items.forEach(i => i.style.display = ''); // Reset display
         };
 
-        // --- UI HELPERS ---
+        // --- HELPERS ---
+        window.searchTable = (tid, q) => {
+            const rows = document.getElementById(tid).getElementsByTagName('tr');
+            for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
+        };
+
+        window.searchOrders = (q) => {
+            const rows = document.getElementById('order-table-body').getElementsByTagName('tr');
+            for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
+        };
+
         window.selectAll = (cls, master) => {
             const chks = document.getElementsByClassName(cls);
             for(let c of chks) {
                 c.checked = master.checked;
-                const rowId = c.dataset.id;
-                // Highlight row/card
-                const rowEl = document.getElementById(`${cls[0]}-row-${rowId}`);
-                if(c.checked) rowEl.classList.add('selected-row');
-                else rowEl.classList.remove('selected-row');
+                window.rowHigh(c.dataset.id, c, cls[0]);
             }
         };
 
-        window.rowHighlight = (id, el) => {
-            const row = document.getElementById(id);
-            if(el.checked) row.classList.add('selected-row');
-            else row.classList.remove('selected-row');
+        window.rowHigh = (id, el, prefix) => {
+            const r = document.getElementById(`${prefix}-row-${id}`);
+            if(el.checked) r.classList.add('selected-row');
+            else r.classList.remove('selected-row');
         };
 
-        window.saveProduct = async () => {
-            const data = {
-                name: document.getElementById('p-name').value,
-                category: document.getElementById('p-cat-select').value,
-                price: parseFloat(document.getElementById('p-price').value) || 0,
-                stock: parseInt(document.getElementById('p-stock').value) || 0,
-                img: document.getElementById('p-img').value,
-                createdAt: serverTimestamp()
-            };
-            if(!data.name) return alert("សូមដាក់ឈ្មោះទំនិញ!");
-            await addDoc(collection(db, "products"), data);
-            alert("រក្សាទុកបានសម្រេច!"); window.loadAll();
-        };
-
-        // File to Base64
         document.getElementById('p-file').onchange = (e) => {
             const r = new FileReader();
             r.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
