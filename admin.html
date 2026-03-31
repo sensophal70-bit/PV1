@@ -3,71 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Shop - Professional Invoice v8.8</title>
+    <title>Roththa Shop - Fixed v8.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
         body { font-family: 'Hanuman', serif; background-color: #f8fafc; }
-        .card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; }
         .hidden-panel { display: none !important; }
-        .selected-row { background-color: #f0f7ff !important; border-left: 4px solid #2563eb; }
-        .invoice-page { page-break-after: always; padding: 40px; background: white; }
+        .invoice-page { page-break-after: always; padding: 40px; background: white; border-bottom: 1px dashed #ccc; }
     </style>
 </head>
 <body class="p-2 md:p-4">
 
-    <div id="login-panel" class="max-w-md mx-auto mt-20 card text-center">
-        <h1 class="font-bold text-blue-900 text-xl mb-6 uppercase">Admin Access</h1>
-        <input type="password" id="admin-pass" placeholder="Password..." class="w-full p-3 border rounded-xl text-center mb-4 outline-none focus:ring-2 ring-blue-500">
-        <button onclick="window.login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase shadow-lg">Login</button>
+    <div id="login-panel" class="max-w-md mx-auto mt-20 card text-center border-t-8 border-blue-600">
+        <h1 class="font-bold text-blue-900 text-xl mb-6 uppercase italic underline">Admin Login</h1>
+        <input type="password" id="admin-pass" placeholder="លេខកូដសម្ងាត់..." class="w-full p-3 border rounded-xl text-center mb-4 outline-none focus:ring-2 ring-blue-500">
+        <button onclick="window.login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase shadow-lg">ចូលប្រព័ន្ធ</button>
     </div>
 
     <div id="admin-main" class="hidden-panel max-w-7xl mx-auto space-y-6">
         
-        <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
-            <h2 class="font-bold text-blue-900 italic">ROTH THA SHOP v8.8</h2>
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl border shadow-sm">
+            <h2 class="font-bold text-blue-900 italic">ROTH THA SHOP v8.9</h2>
             <div class="flex gap-2">
-                <button onclick="window.showModal('cat-modal')" class="bg-gray-100 px-3 py-1 rounded text-[10px] font-bold">+ Category</button>
-                <button onclick="window.showModal('sup-modal')" class="bg-gray-100 px-3 py-1 rounded text-[10px] font-bold">+ Supplier</button>
-                <button onclick="location.reload()" class="bg-red-50 text-red-600 px-3 py-1 rounded text-[10px] font-bold">Logout</button>
+                <button onclick="window.showModal('cat-modal')" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-[10px] font-bold uppercase border border-blue-200">+ Category</button>
+                <button onclick="window.showModal('sup-modal')" class="bg-orange-50 text-orange-600 px-3 py-1 rounded text-[10px] font-bold uppercase border border-orange-200">+ Supplier</button>
+                <button onclick="location.reload()" class="bg-red-50 text-red-600 px-3 py-1 rounded text-[10px] font-bold">LOGOUT</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-4 space-y-6">
                 <div class="card border-t-4 border-blue-600">
-                    <h3 class="font-bold text-xs mb-4 uppercase underline">Product Entry</h3>
+                    <h3 class="font-bold text-xs mb-4 uppercase underline text-blue-600 italic">បញ្ចូលទំនិញ</h3>
                     <input type="hidden" id="edit-id">
                     <div class="space-y-3">
-                        <input type="text" id="p-name" placeholder="ឈ្មោះទំនិញ" class="w-full p-2 border rounded-lg text-xs outline-none">
+                        <input type="text" id="p-name" placeholder="ឈ្មោះទំនិញ" class="w-full p-2 border rounded-lg text-xs outline-none focus:ring-1 ring-blue-500">
                         <div class="flex gap-2">
-                            <select id="p-cat-select" class="w-1/2 p-2 border rounded-lg text-[10px]"></select>
-                            <select id="p-sup-select" class="w-1/2 p-2 border rounded-lg text-[10px]"></select>
+                            <select id="p-cat-select" class="w-1/2 p-2 border rounded-lg text-[10px] font-bold text-blue-700 bg-blue-50"></select>
+                            <select id="p-sup-select" class="w-1/2 p-2 border rounded-lg text-[10px] font-bold text-orange-700 bg-orange-50"></select>
                         </div>
                         <div class="flex gap-2">
-                            <input type="number" id="p-price" placeholder="តម្លៃ $" class="w-1/2 p-2 border rounded-lg text-xs">
-                            <input type="number" id="p-stock" placeholder="ស្តុក" class="w-1/2 p-2 border rounded-lg text-xs">
+                            <input type="number" id="p-price" placeholder="តម្លៃ $" class="w-1/2 p-2 border rounded-lg text-xs font-bold text-emerald-600">
+                            <input type="number" id="p-stock" placeholder="ចំនួនស្តុក" class="w-1/2 p-2 border rounded-lg text-xs">
                         </div>
-                        <input type="file" id="p-file" class="w-full text-[10px] border p-1 rounded-lg">
+                        <input type="file" id="p-file" class="w-full text-[10px] border p-1 rounded-lg bg-gray-50">
                         <input type="hidden" id="p-img">
-                        <button onclick="window.saveProduct()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-xs uppercase shadow">Save Product</button>
+                        <button onclick="window.saveProduct()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-xs uppercase shadow hover:bg-blue-700">រក្សាទុកទំនិញ</button>
                     </div>
                 </div>
 
                 <div class="card border-t-4 border-orange-500">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-[10px] uppercase text-orange-600 underline">Sales History</h3>
-                        <button onclick="window.exportAllSelectedInvoices()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">Export Selected</button>
+                        <h3 class="font-bold text-[10px] uppercase text-orange-600 underline italic">ប្រវត្តិការលក់</h3>
+                        <button onclick="window.exportAllSelectedInvoices()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold uppercase shadow">Export Selected</button>
                     </div>
-                    <input type="text" onkeyup="window.searchTable('order-body', this.value)" placeholder="Search customer..." class="w-full p-2 mb-2 border rounded-lg text-[10px] outline-none">
-                    <div class="overflow-y-auto max-h-[400px]">
+                    <input type="text" onkeyup="window.searchTable('order-body', this.value)" placeholder="ស្វែងរកឈ្មោះភ្ញៀវ..." class="w-full p-2 mb-2 border rounded-lg text-[10px] outline-none">
+                    <div class="overflow-y-auto max-h-[350px]">
                         <table class="w-full text-[10px]">
                             <thead class="bg-orange-50 sticky top-0">
                                 <tr>
                                     <th class="p-2"><input type="checkbox" onclick="window.selectAll('o-chk', this)"></th>
-                                    <th>Customer</th><th class="text-right">Total</th><th class="text-center">Action</th>
+                                    <th>Customer</th><th class="text-right">Total</th><th class="text-center">PDF</th>
                                 </tr>
                             </thead>
                             <tbody id="order-body"></tbody>
@@ -78,18 +77,15 @@
 
             <div class="lg:col-span-8 card border-t-4 border-emerald-500">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-xs uppercase text-emerald-700">Inventory Report</h3>
-                    <div class="flex gap-2">
-                        <input type="text" onkeyup="window.searchTable('product-body', this.value)" placeholder="ស្វែងរក..." class="p-2 border rounded-lg text-[10px] w-32 outline-none">
-                        <button onclick="window.exportSelectedProducts()" class="bg-emerald-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow"><i class="fas fa-file-pdf mr-1"></i> Stock PDF</button>
-                    </div>
+                    <h3 class="font-bold text-xs uppercase text-emerald-700 italic underline">របាយការណ៍ស្តុកទំនិញ</h3>
+                    <button onclick="window.exportSelectedProducts()" class="bg-emerald-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow uppercase"><i class="fas fa-file-pdf mr-1"></i> Stock PDF</button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-[11px]">
-                        <thead class="bg-gray-50 border-b">
+                    <table class="w-full text-[11px] text-left">
+                        <thead class="bg-gray-100 border-b">
                             <tr>
-                                <th class="p-2"><input type="checkbox" onclick="window.selectAll('p-chk', this)"></th>
-                                <th>Image</th><th>Name</th><th>Category</th><th class="text-center">Stock</th><th class="text-right">Price</th><th class="text-center">Action</th>
+                                <th class="p-3"><input type="checkbox" onclick="window.selectAll('p-chk', this)"></th>
+                                <th>រូបភាព</th><th>ឈ្មោះទំនិញ</th><th>ប្រភេទ</th><th class="text-center">ស្តុក</th><th class="text-right">តម្លៃ</th><th class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="product-body"></tbody>
@@ -99,13 +95,33 @@
         </div>
     </div>
 
+    <div id="cat-modal" class="hidden-panel fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm">
+            <h3 class="font-bold mb-4 uppercase text-sm border-b pb-2">បន្ថែមប្រភេទ (Category)</h3>
+            <input type="text" id="new-cat-input" placeholder="ឈ្មោះប្រភេទ..." class="w-full p-2 border rounded-lg mb-2 outline-none">
+            <button onclick="window.addCategory()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold uppercase shadow">បន្ថែម</button>
+            <div id="cat-list-display" class="mt-4 space-y-1 max-h-40 overflow-y-auto text-[10px]"></div>
+            <button onclick="window.closeModal('cat-modal')" class="w-full mt-4 text-gray-400 text-xs uppercase">បិទវិញ</button>
+        </div>
+    </div>
+
+    <div id="sup-modal" class="hidden-panel fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm">
+            <h3 class="font-bold mb-4 uppercase text-sm border-b pb-2 text-orange-600">បន្ថែមអ្នកផ្គត់ផ្គង់ (Supplier)</h3>
+            <input type="text" id="new-sup-name" placeholder="ឈ្មោះក្រុមហ៊ុន/បុគ្គល..." class="w-full p-2 border rounded-lg mb-2 outline-none">
+            <input type="text" id="new-sup-phone" placeholder="លេខទូរស័ព្ទ..." class="w-full p-2 border rounded-lg mb-2 outline-none">
+            <button onclick="window.addSupplier()" class="w-full bg-orange-600 text-white py-2 rounded-lg text-xs font-bold uppercase shadow">បន្ថែម</button>
+            <div id="sup-list-display" class="mt-4 space-y-1 max-h-40 overflow-y-auto text-[10px]"></div>
+            <button onclick="window.closeModal('sup-modal')" class="w-full mt-4 text-gray-400 text-xs uppercase">បិទវិញ</button>
+        </div>
+    </div>
+
     <div id="pdf-view-panel" class="hidden-panel fixed inset-0 bg-gray-900 bg-opacity-95 z-[100] flex flex-col items-center p-4">
         <div class="w-full max-w-3xl flex justify-between mb-4">
-            <button onclick="window.showMain()" class="bg-white px-5 py-2 rounded-xl font-bold text-blue-900"><i class="fas fa-arrow-left mr-2"></i>Back</button>
-            <button id="btn-download" class="bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold">Download All PDF</button>
+            <button onclick="window.showMain()" class="bg-white px-5 py-2 rounded-xl font-bold text-blue-900 shadow-xl border-2 border-blue-900"><i class="fas fa-arrow-left mr-2"></i>ត្រឡប់ក្រោយ</button>
+            <button id="btn-download" class="bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold shadow-xl italic uppercase">Download PDF Now</button>
         </div>
-        <div id="pdf-render-area" class="w-full max-w-2xl bg-white shadow-2xl rounded overflow-y-auto">
-            </div>
+        <div id="pdf-render-area" class="w-full max-w-2xl bg-white shadow-2xl rounded overflow-y-auto p-4"></div>
     </div>
 
     <script type="module">
@@ -124,17 +140,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- AUTH & NAV ---
+        // --- NAVIGATION ---
         window.login = () => {
             if(document.getElementById('admin-pass').value === "12345") {
                 document.getElementById('login-panel').classList.add('hidden-panel');
                 document.getElementById('admin-main').classList.remove('hidden-panel');
                 window.loadAll();
-            } else alert("Error!");
+            } else alert("លេខកូដខុស!");
         };
+        window.showModal = (id) => document.getElementById(id).classList.remove('hidden-panel');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden-panel');
         window.showMain = () => {
             document.getElementById('pdf-view-panel').classList.add('hidden-panel');
             document.getElementById('admin-main').classList.remove('hidden-panel');
+        };
+
+        // --- CATEGORY & SUPPLIER FUNCTIONS (NEW & FIXED) ---
+        window.addCategory = async () => {
+            const name = document.getElementById('new-cat-input').value;
+            if(!name) return alert("សូមបញ្ចូលឈ្មោះប្រភេទ!");
+            await addDoc(collection(db, "categories"), { name, createdAt: serverTimestamp() });
+            document.getElementById('new-cat-input').value = "";
+            window.loadAll();
+        };
+
+        window.addSupplier = async () => {
+            const name = document.getElementById('new-sup-name').value;
+            const phone = document.getElementById('new-sup-phone').value;
+            if(!name) return alert("សូមបញ្ចូលឈ្មោះអ្នកផ្គត់ផ្គង់!");
+            await addDoc(collection(db, "suppliers"), { name, phone, createdAt: serverTimestamp() });
+            document.getElementById('new-sup-name').value = "";
+            document.getElementById('new-sup-phone').value = "";
+            window.loadAll();
         };
 
         // --- LOAD DATA ---
@@ -146,155 +183,40 @@
                 getDocs(collection(db, "suppliers"))
             ]);
 
+            // Update Dropdowns & Modal Lists
+            const cSel = document.getElementById('p-cat-select');
+            const sSel = document.getElementById('p-sup-select');
+            const cList = document.getElementById('cat-list-display');
+            const sList = document.getElementById('sup-list-display');
+            cSel.innerHTML = sSel.innerHTML = cList.innerHTML = sList.innerHTML = "";
+
+            cSnap.forEach(d => {
+                cSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
+                cList.innerHTML += `<div class="flex justify-between bg-gray-50 p-2 border rounded"><span>${d.data().name}</span><button onclick="window.del('categories','${d.id}')" class="text-red-400">x</button></div>`;
+            });
+            sSnap.forEach(d => {
+                sSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`;
+                sList.innerHTML += `<div class="flex justify-between bg-orange-50 p-2 border rounded"><span>${d.data().name}</span><button onclick="window.del('suppliers','${d.id}')" class="text-red-400">x</button></div>`;
+            });
+
+            // Product Table
             const pBody = document.getElementById('product-body');
             pBody.innerHTML = "";
             pSnap.forEach(d => {
                 const p = d.data();
-                pBody.innerHTML += `
-                    <tr class="border-b" id="p-row-${d.id}">
-                        <td class="p-2"><input type="checkbox" class="p-chk" data-id="${d.id}" onclick="window.highRow('p-row-${d.id}', this)"></td>
-                        <td><img src="${p.img || ''}" class="w-8 h-8 rounded border"></td>
-                        <td class="font-bold">${p.name}</td>
-                        <td class="text-gray-400 italic">${p.category || ''}</td>
-                        <td class="text-center font-bold text-orange-600">${p.stock}</td>
-                        <td class="text-right font-bold text-emerald-600">$${(p.price || 0).toFixed(2)}</td>
-                        <td class="text-center">
-                            <button onclick="window.del('products','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                pBody.innerHTML += `<tr class="border-b" id="p-row-${d.id}"><td class="p-3"><input type="checkbox" class="p-chk" data-id="${d.id}" onclick="window.highRow('p-row-${d.id}', this)"></td><td><img src="${p.img || ''}" class="w-10 h-10 rounded border object-cover"></td><td class="font-bold">${p.name}</td><td class="text-gray-400 italic">${p.category || ''}</td><td class="text-center font-bold text-orange-600">${p.stock}</td><td class="text-right font-bold text-emerald-600">$${(p.price || 0).toFixed(2)}</td><td class="text-center"><button onclick="window.del('products','${d.id}')" class="text-gray-200 hover:text-red-500 px-2"><i class="fas fa-trash"></i></button></td></tr>`;
             });
 
+            // Order Table
             const oBody = document.getElementById('order-body');
             oBody.innerHTML = "";
             oSnap.forEach(d => {
                 const o = d.data();
-                oBody.innerHTML += `
-                    <tr class="border-b" id="o-row-${d.id}">
-                        <td class="p-2"><input type="checkbox" class="o-chk" data-id="${d.id}" onclick="window.highRow('o-row-${d.id}', this)"></td>
-                        <td class="font-bold">${o.customer_name || 'Guest'}</td>
-                        <td class="text-right font-bold text-orange-600">$${o.total_amount}</td>
-                        <td class="text-center">
-                            <button onclick="window.exportSingleInvoice('${d.id}')" class="text-blue-500"><i class="fas fa-file-pdf"></i></button>
-                        </td>
-                    </tr>`;
+                oBody.innerHTML += `<tr class="border-b" id="o-row-${d.id}"><td class="p-2"><input type="checkbox" class="o-chk" data-id="${d.id}" onclick="window.highRow('o-row-${d.id}', this)"></td><td class="font-bold">${o.customer_name || 'Guest'}</td><td class="text-right font-bold text-orange-600">$${o.total_amount}</td><td class="text-center"><button onclick="window.exportSingleInvoice('${d.id}')" class="text-blue-500"><i class="fas fa-file-pdf"></i></button></td></tr>`;
             });
-            
-            // Populate Dropdowns
-            const cSel = document.getElementById('p-cat-select');
-            const sSel = document.getElementById('p-sup-select');
-            cSel.innerHTML = sSel.innerHTML = "";
-            cSnap.forEach(d => cSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
-            sSnap.forEach(d => sSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
         };
 
-        // --- BATCH EXPORT INVOICES (The "Selected" function) ---
-        window.exportAllSelectedInvoices = async () => {
-            const checked = document.querySelectorAll('.o-chk:checked');
-            if(checked.length === 0) return alert("សូម Tick ជ្រើសរើសភ្ញៀវសិន!");
-
-            const area = document.getElementById('pdf-render-area');
-            area.innerHTML = ""; // Clear old preview
-
-            for(let c of checked) {
-                const d = await getDoc(doc(db, "orders", c.dataset.id));
-                const o = d.data();
-                area.innerHTML += window.generateInvoiceHTML(d.id, o);
-            }
-
-            window.showPDFPreview("Batch_Invoices.pdf");
-        };
-
-        window.exportSingleInvoice = async (id) => {
-            const d = await getDoc(doc(db, "orders", id));
-            const o = d.data();
-            document.getElementById('pdf-render-area').innerHTML = window.generateInvoiceHTML(id, o);
-            window.showPDFPreview(`Invoice_${o.customer_name}.pdf`);
-        };
-
-        // --- INVOICE HTML GENERATOR (Qty, Price, Total) ---
-        window.generateInvoiceHTML = (id, o) => {
-            const date = o.createdAt?.toDate().toLocaleString('km-KH') || '---';
-            let itemsHTML = "";
-            
-            if(o.items && o.items.length > 0) {
-                o.items.forEach(i => {
-                    const price = parseFloat(i.price || 0);
-                    const qty = parseInt(i.qty || 1);
-                    itemsHTML += `
-                        <tr>
-                            <td style="border: 1px solid #ddd; padding: 10px;">${i.name}</td>
-                            <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${qty}</td>
-                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${price.toFixed(2)}</td>
-                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-weight: bold;">$${(price * qty).toFixed(2)}</td>
-                        </tr>`;
-                });
-            } else {
-                itemsHTML = `<tr><td style="border: 1px solid #ddd; padding: 10px;">ការលក់ទូទៅ</td><td style="border: 1px solid #ddd; padding: 10px; text-align: center;">1</td><td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${o.total_amount}</td><td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${o.total_amount}</td></tr>`;
-            }
-
-            return `
-                <div class="invoice-page" style="font-family: 'Hanuman', serif; color: #333;">
-                    <div style="display: flex; justify-content: space-between; border-bottom: 4px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
-                        <div>
-                            <h1 style="margin: 0; color: #1e3a8a; font-size: 24px;">ROTH THA SHOP</h1>
-                            <p style="margin: 0; font-size: 10px;">លក់គ្រឿងសំណង់ និងសម្ភារៈប្រើប្រាស់គ្រប់ប្រភេទ</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h2 style="margin: 0; font-size: 18px;">វិក្កយបត្រ / INVOICE</h2>
-                            <p style="margin: 0; font-size: 12px; font-weight: bold;">#${id.substring(0,8).toUpperCase()}</p>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px;">
-                        <div>
-                            <p><b>អតិថិជន:</b> ${o.customer_name || 'ភ្ញៀវទូទៅ'}</p>
-                            <p><b>លេខទូរស័ព្ទ:</b> ${o.customer_phone || '---'}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <p><b>កាលបរិច្ឆេទ:</b> ${date}</p>
-                        </div>
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
-                        <thead>
-                            <tr style="background: #1e3a8a; color: white;">
-                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: left;">ទំនិញ / Description</th>
-                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: center; width: 60px;">ចំនួន</th>
-                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: right; width: 100px;">តម្លៃរាយ</th>
-                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: right; width: 100px;">សរុប</th>
-                            </tr>
-                        </thead>
-                        <tbody>${itemsHTML}</tbody>
-                    </table>
-
-                    <div style="text-align: right; margin-top: 20px;">
-                        <p style="font-size: 14px; margin: 0;">សរុបរួម / GRAND TOTAL:</p>
-                        <h2 style="font-size: 24px; color: #1e3a8a; margin: 0;">$${parseFloat(o.total_amount).toFixed(2)}</h2>
-                    </div>
-
-                    <div style="margin-top: 50px; display: flex; justify-content: space-around; font-size: 11px; font-style: italic;">
-                        <p>ហត្ថលេខាអ្នកលក់</p>
-                        <p>ហត្ថលេខាអ្នកទិញ</p>
-                    </div>
-                </div>
-            `;
-        };
-
-        window.showPDFPreview = (filename) => {
-            document.getElementById('admin-main').classList.add('hidden-panel');
-            document.getElementById('pdf-view-panel').classList.remove('hidden-panel');
-            document.getElementById('btn-download').onclick = () => {
-                const element = document.getElementById('pdf-render-area');
-                html2pdf().from(element).set({
-                    margin: 0,
-                    filename: filename,
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                }).save();
-            };
-        };
-
-        // --- OTHER UTILS ---
+        // --- PRODUCT ACTIONS ---
         window.saveProduct = async () => {
             const data = {
                 name: document.getElementById('p-name').value,
@@ -305,22 +227,81 @@
                 img: document.getElementById('p-img').value,
                 createdAt: serverTimestamp()
             };
+            if(!data.name) return alert("សូមបំពេញឈ្មោះទំនិញ!");
             await addDoc(collection(db, "products"), data);
+            alert("រក្សាទុកជោគជ័យ!");
             window.loadAll();
         };
 
-        window.del = async (col, id) => { if(confirm("Delete?")) { await deleteDoc(doc(db, col, id)); window.loadAll(); } };
-        window.searchTable = (tid, q) => {
-            const rows = document.getElementById(tid).children;
-            for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
+        // --- PDF BATCH EXPORT ---
+        window.exportAllSelectedInvoices = async () => {
+            const checked = document.querySelectorAll('.o-chk:checked');
+            if(checked.length === 0) return alert("សូមជ្រើសរើសភ្ញៀវ!");
+            const area = document.getElementById('pdf-render-area');
+            area.innerHTML = "";
+            for(let c of checked) {
+                const d = await getDoc(doc(db, "orders", c.dataset.id));
+                area.innerHTML += window.generateInvoiceHTML(d.id, d.data());
+            }
+            window.showPDFPreview("Batch_Invoices.pdf");
         };
+
+        window.exportSingleInvoice = async (id) => {
+            const d = await getDoc(doc(db, "orders", id));
+            document.getElementById('pdf-render-area').innerHTML = window.generateInvoiceHTML(id, d.data());
+            window.showPDFPreview(`Invoice_${d.data().customer_name}.pdf`);
+        };
+
+        window.generateInvoiceHTML = (id, o) => {
+            const date = o.createdAt?.toDate().toLocaleString('km-KH') || '---';
+            let itemsHTML = "";
+            if(o.items && o.items.length > 0) {
+                o.items.forEach(i => {
+                    const p = parseFloat(i.price || 0);
+                    const q = parseInt(i.qty || 1);
+                    itemsHTML += `<tr><td style="border:1px solid #ddd; padding:10px;">${i.name}</td><td style="border:1px solid #ddd; padding:10px; text-align:center;">${q}</td><td style="border:1px solid #ddd; padding:10px; text-align:right;">$${p.toFixed(2)}</td><td style="border:1px solid #ddd; padding:10px; text-align:right;">$${(p*q).toFixed(2)}</td></tr>`;
+                });
+            } else {
+                itemsHTML = `<tr><td style="border:1px solid #ddd; padding:10px;">លក់រាយទូទៅ</td><td style="border:1px solid #ddd; padding:10px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:10px; text-align:right;">$${o.total_amount}</td><td style="border:1px solid #ddd; padding:10px; text-align:right;">$${o.total_amount}</td></tr>`;
+            }
+            return `
+                <div class="invoice-page">
+                    <div style="display:flex; justify-content:space-between; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:20px;">
+                        <div><h2 style="margin:0; color:#1e3a8a;">ROTH THA SHOP</h2><small>វិក្កយបត្រលក់ / SALE INVOICE</small></div>
+                        <div style="text-align:right;"><b>លេខ: #${id.substring(0,8).toUpperCase()}</b><br><small>${date}</small></div>
+                    </div>
+                    <p><b>អតិថិជន:</b> ${o.customer_name || 'ភ្ញៀវទូទៅ'}</p>
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">
+                        <thead><tr style="background:#1e3a8a; color:white;">
+                            <th style="padding:10px; border:1px solid #1e3a8a;">ទំនិញ</th><th style="padding:10px; border:1px solid #1e3a8a;">ចំនួន</th><th style="padding:10px; border:1px solid #1e3a8a;">តម្លៃ</th><th style="padding:10px; border:1px solid #1e3a8a;">សរុប</th>
+                        </tr></thead>
+                        <tbody>${itemsHTML}</tbody>
+                    </table>
+                    <div style="text-align:right; margin-top:20px;"><h3 style="color:#1e3a8a;">សរុបរួម: $${parseFloat(o.total_amount).toFixed(2)}</h3></div>
+                </div>`;
+        };
+
+        window.showPDFPreview = (filename) => {
+            document.getElementById('admin-main').classList.add('hidden-panel');
+            document.getElementById('pdf-view-panel').classList.remove('hidden-panel');
+            document.getElementById('btn-download').onclick = () => {
+                html2pdf().from(document.getElementById('pdf-render-area')).set({ margin: 0.2, filename, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).save();
+            };
+        };
+
+        // --- COMMON UTILS ---
+        window.del = async (col, id) => { if(confirm("លុប?")) { await deleteDoc(doc(db, col, id)); window.loadAll(); } };
         window.highRow = (rid, el) => {
-            if(el.checked) document.getElementById(rid).classList.add('selected-row');
-            else document.getElementById(rid).classList.remove('selected-row');
+            if(el.checked) document.getElementById(rid).style.backgroundColor = "#eff6ff";
+            else document.getElementById(rid).style.backgroundColor = "";
         };
         window.selectAll = (cls, master) => {
             const chks = document.getElementsByClassName(cls);
             for(let c of chks) { c.checked = master.checked; window.highRow(c.closest('tr').id, c); }
+        };
+        window.searchTable = (tid, q) => {
+            const rows = document.getElementById(tid).children;
+            for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
         };
         document.getElementById('p-file').onchange = (e) => {
             const r = new FileReader(); r.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
