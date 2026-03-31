@@ -3,142 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roththa Shop - Ultimate System 2026</title>
+    <title>Roththa Shop - Professional Invoice v8.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
-        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; }
-        .card { background: white; border-radius: 1.5rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .hidden-panel { display: none; }
-        .selected-row { background-color: #eff6ff !important; border-left: 5px solid #2563eb; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Hanuman', serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .hidden-panel { display: none !important; }
+        .selected-row { background-color: #f0f7ff !important; border-left: 4px solid #2563eb; }
+        .invoice-page { page-break-after: always; padding: 40px; background: white; }
     </style>
 </head>
-<body class="p-2 md:p-6">
+<body class="p-2 md:p-4">
 
-    <div id="login-panel" class="max-w-md mx-auto mt-20 bg-white p-10 rounded-[2.5rem] shadow-2xl text-center border">
-        <h1 class="font-bold text-blue-900 text-2xl mb-6 italic underline uppercase">Admin Login</h1>
-        <input type="password" id="admin-pass" placeholder="លេខកូដសម្ងាត់..." class="w-full p-4 bg-gray-50 border rounded-2xl outline-none text-center mb-4 focus:ring-2 ring-blue-500 text-lg">
-        <button id="login-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all uppercase">ចូលប្រព័ន្ធ</button>
+    <div id="login-panel" class="max-w-md mx-auto mt-20 card text-center">
+        <h1 class="font-bold text-blue-900 text-xl mb-6 uppercase">Admin Access</h1>
+        <input type="password" id="admin-pass" placeholder="Password..." class="w-full p-3 border rounded-xl text-center mb-4 outline-none focus:ring-2 ring-blue-500">
+        <button onclick="window.login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase shadow-lg">Login</button>
     </div>
 
     <div id="admin-main" class="hidden-panel max-w-7xl mx-auto space-y-6">
         
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border shadow-sm">
-            <button onclick="window.goBack()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-xs hover:bg-red-50 hover:text-red-600 transition-all">
-                <i class="fas fa-arrow-left mr-2"></i> ចាកចេញ (Back)
-            </button>
-            <h2 class="font-bold text-blue-900 italic uppercase hidden md:block">Roththa Shop Management</h2>
-            <div class="flex gap-3">
-                <button onclick="window.loadAll()" class="text-blue-500 hover:rotate-180 transition-all duration-500"><i class="fas fa-sync-alt fa-lg"></i></button>
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+            <h2 class="font-bold text-blue-900 italic">ROTH THA SHOP v8.8</h2>
+            <div class="flex gap-2">
+                <button onclick="window.showModal('cat-modal')" class="bg-gray-100 px-3 py-1 rounded text-[10px] font-bold">+ Category</button>
+                <button onclick="window.showModal('sup-modal')" class="bg-gray-100 px-3 py-1 rounded text-[10px] font-bold">+ Supplier</button>
+                <button onclick="location.reload()" class="bg-red-50 text-red-600 px-3 py-1 rounded text-[10px] font-bold">Logout</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
             <div class="lg:col-span-4 space-y-6">
-                <div class="card border-t-8 border-blue-600">
-                    <h2 id="form-title" class="font-bold text-slate-800 mb-4 text-xs italic underline uppercase">បញ្ចូល/កែសម្រួលទំនិញ</h2>
+                <div class="card border-t-4 border-blue-600">
+                    <h3 class="font-bold text-xs mb-4 uppercase underline">Product Entry</h3>
                     <input type="hidden" id="edit-id">
                     <div class="space-y-3">
-                        <input type="text" id="p-name" placeholder="ឈ្មោះទំនិញ" class="w-full p-3 bg-gray-50 border rounded-xl text-xs outline-none">
+                        <input type="text" id="p-name" placeholder="ឈ្មោះទំនិញ" class="w-full p-2 border rounded-lg text-xs outline-none">
                         <div class="flex gap-2">
-                            <select id="p-cat-select" class="w-1/2 p-3 bg-blue-50 border rounded-xl text-[10px] font-bold text-blue-700"></select>
-                            <select id="p-sup-select" class="w-1/2 p-3 bg-orange-50 border rounded-xl text-[10px] font-bold text-orange-700"></select>
+                            <select id="p-cat-select" class="w-1/2 p-2 border rounded-lg text-[10px]"></select>
+                            <select id="p-sup-select" class="w-1/2 p-2 border rounded-lg text-[10px]"></select>
                         </div>
                         <div class="flex gap-2">
-                            <input type="number" id="p-price" placeholder="តម្លៃ ($)" class="w-1/2 p-3 bg-emerald-50 border rounded-xl text-xs font-bold text-emerald-700">
-                            <input type="number" id="p-stock" placeholder="ចំនួនស្តុក" class="w-1/2 p-3 bg-gray-50 border rounded-xl text-xs">
+                            <input type="number" id="p-price" placeholder="តម្លៃ $" class="w-1/2 p-2 border rounded-lg text-xs">
+                            <input type="number" id="p-stock" placeholder="ស្តុក" class="w-1/2 p-2 border rounded-lg text-xs">
                         </div>
-                        <input type="file" id="p-file" class="w-full text-[10px] text-gray-400 border border-dashed p-2 rounded-xl">
+                        <input type="file" id="p-file" class="w-full text-[10px] border p-1 rounded-lg">
                         <input type="hidden" id="p-img">
-                        <div class="flex gap-2">
-                            <button id="save-btn" onclick="window.saveProduct()" class="flex-grow bg-blue-600 text-white py-3 rounded-xl font-bold text-xs shadow-md uppercase">រក្សាទុក</button>
-                            <button id="cancel-btn" onclick="window.clearForm()" class="hidden bg-gray-400 text-white px-4 rounded-xl text-xs font-bold">បោះបង់</button>
-                        </div>
+                        <button onclick="window.saveProduct()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-xs uppercase shadow">Save Product</button>
                     </div>
                 </div>
 
-                <div class="card border-t-8 border-emerald-500">
-                    <h2 class="font-bold text-emerald-700 mb-4 text-[10px] uppercase italic">ទាញយកឯកសារ (Excel/CSV)</h2>
-                    <div class="grid grid-cols-1 gap-2">
-                        <button onclick="window.downloadExcel('product-table-body', 'Stock_Full_Report')" class="bg-emerald-600 text-white p-3 rounded-xl text-[10px] font-bold shadow hover:bg-emerald-700">
-                            <i class="fas fa-file-excel mr-2"></i> Download Stock Excel
-                        </button>
-                        <button onclick="window.downloadExcel('order-table-body', 'Sales_Full_Report', true)" class="bg-blue-500 text-white p-3 rounded-xl text-[10px] font-bold shadow hover:bg-blue-600">
-                            <i class="fas fa-file-csv mr-2"></i> Download Sales CSV
-                        </button>
+                <div class="card border-t-4 border-orange-500">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-[10px] uppercase text-orange-600 underline">Sales History</h3>
+                        <button onclick="window.exportAllSelectedInvoices()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">Export Selected</button>
                     </div>
-                </div>
-
-                <div class="card border-t-8 border-red-600">
-                    <h2 class="font-bold text-red-600 mb-3 text-[10px] uppercase italic">គ្រោះថ្នាក់ (Danger Zone)</h2>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="window.deleteAll('products')" class="bg-red-100 text-red-600 p-2 rounded-xl text-[9px] font-bold hover:bg-red-600 hover:text-white transition-all">លុបស្តុកទាំងអស់</button>
-                        <button onclick="window.deleteAll('orders')" class="bg-orange-100 text-orange-600 p-2 rounded-xl text-[9px] font-bold hover:bg-orange-600 hover:text-white transition-all">លុបប្រវត្តិលក់</button>
+                    <input type="text" onkeyup="window.searchTable('order-body', this.value)" placeholder="Search customer..." class="w-full p-2 mb-2 border rounded-lg text-[10px] outline-none">
+                    <div class="overflow-y-auto max-h-[400px]">
+                        <table class="w-full text-[10px]">
+                            <thead class="bg-orange-50 sticky top-0">
+                                <tr>
+                                    <th class="p-2"><input type="checkbox" onclick="window.selectAll('o-chk', this)"></th>
+                                    <th>Customer</th><th class="text-right">Total</th><th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-body"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-8 space-y-6">
-                
-                <div id="stock-report-area" class="card flex flex-col bg-white overflow-hidden">
-                    <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-                        <h2 class="font-bold text-blue-900 text-xs italic uppercase">របាយការណ៍ស្តុកទំនិញ</h2>
-                        <div class="flex gap-2">
-                            <input type="text" onkeyup="window.searchTable('product-table-body', this.value)" placeholder="ស្វែងរកទំនិញ..." class="p-2 border rounded-xl text-[10px] w-24 outline-none focus:ring-1 ring-blue-400">
-                            <button onclick="window.exportToPDF('stock-report-area', 'Stock_Report', 'p-check')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[9px] font-bold uppercase shadow-md hover:scale-105 transition-all">
-                                <i class="fas fa-file-pdf mr-1"></i> Export PDF (Selected)
-                            </button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto no-scrollbar">
-                        <table class="w-full text-left text-[11px] border-collapse">
-                            <thead>
-                                <tr class="border-b text-gray-400 text-[9px] uppercase">
-                                    <th class="py-2"><input type="checkbox" id="all-p" onclick="window.selectAll('p-check', this)"></th>
-                                    <th>ល.រ</th><th>រូបភាព</th><th>ឈ្មោះទំនិញ</th><th class="text-center">ស្តុក</th><th class="text-right">តម្លៃ</th><th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="product-table-body"></tbody>
-                        </table>
+            <div class="lg:col-span-8 card border-t-4 border-emerald-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-xs uppercase text-emerald-700">Inventory Report</h3>
+                    <div class="flex gap-2">
+                        <input type="text" onkeyup="window.searchTable('product-body', this.value)" placeholder="ស្វែងរក..." class="p-2 border rounded-lg text-[10px] w-32 outline-none">
+                        <button onclick="window.exportSelectedProducts()" class="bg-emerald-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow"><i class="fas fa-file-pdf mr-1"></i> Stock PDF</button>
                     </div>
                 </div>
-
-                <div id="sales-report-area" class="card flex flex-col border-l-8 border-orange-500 bg-white overflow-hidden">
-                    <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-                        <h2 class="font-bold text-orange-600 text-xs italic uppercase">របាយការណ៍ប្រវត្តិការលក់</h2>
-                        <div class="flex gap-2">
-                            <input type="text" onkeyup="window.searchTable('order-table-body', this.value)" placeholder="ឈ្មោះភ្ញៀវ..." class="p-2 border rounded-xl text-[10px] w-24 outline-none focus:ring-1 ring-orange-400">
-                            <button onclick="window.exportToPDF('sales-report-area', 'Sales_Report', 'o-check')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[9px] font-bold uppercase shadow-md hover:scale-105 transition-all">
-                                <i class="fas fa-file-pdf mr-1"></i> Export PDF (Selected)
-                            </button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto no-scrollbar">
-                        <table class="w-full text-left text-[11px] border-collapse">
-                            <thead>
-                                <tr class="border-b text-gray-400 text-[9px] uppercase">
-                                    <th class="py-2"><input type="checkbox" id="all-o" onclick="window.selectAll('o-check', this)"></th>
-                                    <th>ល.រ</th><th>អតិថិជន/ថ្ងៃខែ</th><th>មុខទំនិញ</th><th class="text-right">សរុប ($)</th><th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="order-table-body"></tbody>
-                        </table>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[11px]">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-2"><input type="checkbox" onclick="window.selectAll('p-chk', this)"></th>
+                                <th>Image</th><th>Name</th><th>Category</th><th class="text-center">Stock</th><th class="text-right">Price</th><th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-body"></tbody>
+                    </table>
                 </div>
-
             </div>
         </div>
     </div>
 
+    <div id="pdf-view-panel" class="hidden-panel fixed inset-0 bg-gray-900 bg-opacity-95 z-[100] flex flex-col items-center p-4">
+        <div class="w-full max-w-3xl flex justify-between mb-4">
+            <button onclick="window.showMain()" class="bg-white px-5 py-2 rounded-xl font-bold text-blue-900"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+            <button id="btn-download" class="bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold">Download All PDF</button>
+        </div>
+        <div id="pdf-render-area" class="w-full max-w-2xl bg-white shadow-2xl rounded overflow-y-auto">
+            </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -153,80 +125,177 @@
         const db = getFirestore(app);
 
         // --- AUTH & NAV ---
-        document.getElementById('login-btn').onclick = () => {
+        window.login = () => {
             if(document.getElementById('admin-pass').value === "12345") {
                 document.getElementById('login-panel').classList.add('hidden-panel');
                 document.getElementById('admin-main').classList.remove('hidden-panel');
                 window.loadAll();
-            } else { alert("លេខកូដមិនត្រឹមត្រូវ!"); }
+            } else alert("Error!");
         };
-
-        window.goBack = () => {
-            if(confirm("តើបងចង់ចាកចេញមែនទេ?")) {
-                document.getElementById('admin-main').classList.add('hidden-panel');
-                document.getElementById('login-panel').classList.remove('hidden-panel');
-                document.getElementById('admin-pass').value = "";
-            }
+        window.showMain = () => {
+            document.getElementById('pdf-view-panel').classList.add('hidden-panel');
+            document.getElementById('admin-main').classList.remove('hidden-panel');
         };
 
         // --- LOAD DATA ---
         window.loadAll = async () => {
-            const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-            const oSnap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
-            const cSnap = await getDocs(query(collection(db, "categories"), orderBy("name")));
-            const sSnap = await getDocs(query(collection(db, "suppliers"), orderBy("name")));
+            const [pSnap, oSnap, cSnap, sSnap] = await Promise.all([
+                getDocs(query(collection(db, "products"), orderBy("createdAt", "desc"))),
+                getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc"))),
+                getDocs(collection(db, "categories")),
+                getDocs(collection(db, "suppliers"))
+            ]);
 
-            // Dropdowns
-            const cSel = document.getElementById('p-cat-select');
-            const sSel = document.getElementById('p-sup-select');
-            cSel.innerHTML = `<option value="">-- ប្រភេទ --</option>`;
-            sSel.innerHTML = `<option value="">-- អ្នកផ្គត់ផ្គង់ --</option>`;
-            cSnap.forEach(d => cSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
-            sSnap.forEach(d => sSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
-
-            // Product Table
-            const pBody = document.getElementById('product-table-body');
+            const pBody = document.getElementById('product-body');
             pBody.innerHTML = "";
-            let i = 1;
             pSnap.forEach(d => {
                 const p = d.data();
                 pBody.innerHTML += `
-                    <tr class="border-b row-item" id="p-row-${d.id}">
-                        <td class="py-2"><input type="checkbox" class="p-check" data-id="${d.id}" data-val="${(p.stock * p.price) || 0}" onclick="window.rowHigh('${d.id}', this, 'p')"></td>
-                        <td class="text-gray-400">${i++}</td>
-                        <td><img src="${p.img || ''}" class="w-8 h-8 rounded border object-cover shadow-sm"></td>
-                        <td class="font-bold text-blue-900 text-[10px]">${p.name}</td>
-                        <td class="text-center font-bold text-orange-600">${p.stock || 0}</td>
+                    <tr class="border-b" id="p-row-${d.id}">
+                        <td class="p-2"><input type="checkbox" class="p-chk" data-id="${d.id}" onclick="window.highRow('p-row-${d.id}', this)"></td>
+                        <td><img src="${p.img || ''}" class="w-8 h-8 rounded border"></td>
+                        <td class="font-bold">${p.name}</td>
+                        <td class="text-gray-400 italic">${p.category || ''}</td>
+                        <td class="text-center font-bold text-orange-600">${p.stock}</td>
                         <td class="text-right font-bold text-emerald-600">$${(p.price || 0).toFixed(2)}</td>
                         <td class="text-center">
-                            <button onclick="window.editProduct('${d.id}')" class="text-blue-400 mr-2 hover:scale-110"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.deleteOne('products','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="window.del('products','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
             });
 
-            // Sales Table
-            const oBody = document.getElementById('order-table-body');
+            const oBody = document.getElementById('order-body');
             oBody.innerHTML = "";
-            let j = 1;
             oSnap.forEach(d => {
                 const o = d.data();
-                const amt = parseFloat(o.total_amount?.toString().replace('$', '')) || 0;
                 oBody.innerHTML += `
-                    <tr class="border-b row-item" id="o-row-${d.id}">
-                        <td class="py-2"><input type="checkbox" class="o-check" data-id="${d.id}" data-val="${amt}" onclick="window.rowHigh('${d.id}', this, 'o')"></td>
-                        <td class="text-gray-400">${j++}</td>
-                        <td><div class="font-bold text-blue-900 text-[10px]">${o.customer_name || 'Guest'}</div><div class="text-[8px] text-gray-400 italic">${o.createdAt?.toDate().toLocaleDateString('km-KH') || ''}</div></td>
-                        <td class="text-[9px] text-gray-500 truncate max-w-[100px]">${o.items ? o.items.map(i => i.name + " x" + i.qty).join(", ") : ""}</td>
-                        <td class="text-right font-bold text-red-600">$${amt.toFixed(2)}</td>
-                        <td class="text-center"><button onclick="window.deleteOne('orders','${d.id}')" class="text-gray-300 hover:text-red-500"><i class="fas fa-times-circle"></i></button></td>
+                    <tr class="border-b" id="o-row-${d.id}">
+                        <td class="p-2"><input type="checkbox" class="o-chk" data-id="${d.id}" onclick="window.highRow('o-row-${d.id}', this)"></td>
+                        <td class="font-bold">${o.customer_name || 'Guest'}</td>
+                        <td class="text-right font-bold text-orange-600">$${o.total_amount}</td>
+                        <td class="text-center">
+                            <button onclick="window.exportSingleInvoice('${d.id}')" class="text-blue-500"><i class="fas fa-file-pdf"></i></button>
+                        </td>
                     </tr>`;
             });
+            
+            // Populate Dropdowns
+            const cSel = document.getElementById('p-cat-select');
+            const sSel = document.getElementById('p-sup-select');
+            cSel.innerHTML = sSel.innerHTML = "";
+            cSnap.forEach(d => cSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
+            sSnap.forEach(d => sSel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
         };
 
-        // --- PRODUCT ACTIONS ---
+        // --- BATCH EXPORT INVOICES (The "Selected" function) ---
+        window.exportAllSelectedInvoices = async () => {
+            const checked = document.querySelectorAll('.o-chk:checked');
+            if(checked.length === 0) return alert("សូម Tick ជ្រើសរើសភ្ញៀវសិន!");
+
+            const area = document.getElementById('pdf-render-area');
+            area.innerHTML = ""; // Clear old preview
+
+            for(let c of checked) {
+                const d = await getDoc(doc(db, "orders", c.dataset.id));
+                const o = d.data();
+                area.innerHTML += window.generateInvoiceHTML(d.id, o);
+            }
+
+            window.showPDFPreview("Batch_Invoices.pdf");
+        };
+
+        window.exportSingleInvoice = async (id) => {
+            const d = await getDoc(doc(db, "orders", id));
+            const o = d.data();
+            document.getElementById('pdf-render-area').innerHTML = window.generateInvoiceHTML(id, o);
+            window.showPDFPreview(`Invoice_${o.customer_name}.pdf`);
+        };
+
+        // --- INVOICE HTML GENERATOR (Qty, Price, Total) ---
+        window.generateInvoiceHTML = (id, o) => {
+            const date = o.createdAt?.toDate().toLocaleString('km-KH') || '---';
+            let itemsHTML = "";
+            
+            if(o.items && o.items.length > 0) {
+                o.items.forEach(i => {
+                    const price = parseFloat(i.price || 0);
+                    const qty = parseInt(i.qty || 1);
+                    itemsHTML += `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 10px;">${i.name}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${qty}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${price.toFixed(2)}</td>
+                            <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-weight: bold;">$${(price * qty).toFixed(2)}</td>
+                        </tr>`;
+                });
+            } else {
+                itemsHTML = `<tr><td style="border: 1px solid #ddd; padding: 10px;">ការលក់ទូទៅ</td><td style="border: 1px solid #ddd; padding: 10px; text-align: center;">1</td><td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${o.total_amount}</td><td style="border: 1px solid #ddd; padding: 10px; text-align: right;">$${o.total_amount}</td></tr>`;
+            }
+
+            return `
+                <div class="invoice-page" style="font-family: 'Hanuman', serif; color: #333;">
+                    <div style="display: flex; justify-content: space-between; border-bottom: 4px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
+                        <div>
+                            <h1 style="margin: 0; color: #1e3a8a; font-size: 24px;">ROTH THA SHOP</h1>
+                            <p style="margin: 0; font-size: 10px;">លក់គ្រឿងសំណង់ និងសម្ភារៈប្រើប្រាស់គ្រប់ប្រភេទ</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="margin: 0; font-size: 18px;">វិក្កយបត្រ / INVOICE</h2>
+                            <p style="margin: 0; font-size: 12px; font-weight: bold;">#${id.substring(0,8).toUpperCase()}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px;">
+                        <div>
+                            <p><b>អតិថិជន:</b> ${o.customer_name || 'ភ្ញៀវទូទៅ'}</p>
+                            <p><b>លេខទូរស័ព្ទ:</b> ${o.customer_phone || '---'}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p><b>កាលបរិច្ឆេទ:</b> ${date}</p>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background: #1e3a8a; color: white;">
+                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: left;">ទំនិញ / Description</th>
+                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: center; width: 60px;">ចំនួន</th>
+                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: right; width: 100px;">តម្លៃរាយ</th>
+                                <th style="border: 1px solid #1e3a8a; padding: 10px; text-align: right; width: 100px;">សរុប</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsHTML}</tbody>
+                    </table>
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <p style="font-size: 14px; margin: 0;">សរុបរួម / GRAND TOTAL:</p>
+                        <h2 style="font-size: 24px; color: #1e3a8a; margin: 0;">$${parseFloat(o.total_amount).toFixed(2)}</h2>
+                    </div>
+
+                    <div style="margin-top: 50px; display: flex; justify-content: space-around; font-size: 11px; font-style: italic;">
+                        <p>ហត្ថលេខាអ្នកលក់</p>
+                        <p>ហត្ថលេខាអ្នកទិញ</p>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.showPDFPreview = (filename) => {
+            document.getElementById('admin-main').classList.add('hidden-panel');
+            document.getElementById('pdf-view-panel').classList.remove('hidden-panel');
+            document.getElementById('btn-download').onclick = () => {
+                const element = document.getElementById('pdf-render-area');
+                html2pdf().from(element).set({
+                    margin: 0,
+                    filename: filename,
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                }).save();
+            };
+        };
+
+        // --- OTHER UTILS ---
         window.saveProduct = async () => {
-            const id = document.getElementById('edit-id').value;
             const data = {
                 name: document.getElementById('p-name').value,
                 category: document.getElementById('p-cat-select').value,
@@ -234,158 +303,29 @@
                 price: parseFloat(document.getElementById('p-price').value) || 0,
                 stock: parseInt(document.getElementById('p-stock').value) || 0,
                 img: document.getElementById('p-img').value,
-                updatedAt: serverTimestamp()
+                createdAt: serverTimestamp()
             };
-            if(!data.name) return alert("សូមបញ្ជាក់ឈ្មោះទំនិញ!");
-            if(id) { await updateDoc(doc(db, "products", id), data); alert("Updated!"); }
-            else { data.createdAt = serverTimestamp(); await addDoc(collection(db, "products"), data); alert("Saved!"); }
-            window.clearForm(); window.loadAll();
+            await addDoc(collection(db, "products"), data);
+            window.loadAll();
         };
 
-        window.editProduct = async (id) => {
-            const d = await getDoc(doc(db, "products", id));
-            const p = d.data();
-            document.getElementById('edit-id').value = id;
-            document.getElementById('p-name').value = p.name;
-            document.getElementById('p-cat-select').value = p.category;
-            document.getElementById('p-sup-select').value = p.supplier;
-            document.getElementById('p-price').value = p.price;
-            document.getElementById('p-stock').value = p.stock;
-            document.getElementById('p-img').value = p.img || "";
-            document.getElementById('form-title').innerText = "កំពុងកែសម្រួលទំនិញ...";
-            document.getElementById('cancel-btn').classList.remove('hidden');
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        };
-
-        window.clearForm = () => {
-            document.getElementById('edit-id').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-stock').value = "";
-            document.getElementById('p-img').value = "";
-            document.getElementById('form-title').innerText = "បញ្ចូល/កែសម្រួលទំនិញ";
-            document.getElementById('cancel-btn').classList.add('hidden');
-        };
-
-        // --- DELETE ---
-        window.deleteOne = async (col, id) => {
-            if(confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ?")) { await deleteDoc(doc(db, col, id)); window.loadAll(); }
-        };
-
-        window.deleteAll = async (col) => {
-            if(confirm(`⚠️ ប្រយ័ត្ន! តើបងចង់លុបក្នុង ${col} ទាំងអស់មែនទេ?`)) {
-                const snap = await getDocs(collection(db, col));
-                const batch = writeBatch(db);
-                snap.forEach(d => batch.delete(d.ref));
-                await batch.commit(); window.loadAll();
-            }
-        };
-
-        // --- EXPORT PDF (With Selected Total & Auto Back) ---
-        window.exportToPDF = async (elID, fileName, chkClass) => {
-            const container = document.getElementById(elID);
-            const items = container.querySelectorAll('.row-item');
-            const checks = container.querySelectorAll('.' + chkClass);
-            
-            let selectedTotal = 0;
-            let count = 0;
-
-            checks.forEach(c => {
-                if(c.checked) {
-                    selectedTotal += parseFloat(c.dataset.val);
-                    count++;
-                }
-            });
-
-            if(count === 0) return alert("សូម Tick ជ្រើសរើសទិន្នន័យជាមុនសិន!");
-
-            // Hide non-selected rows
-            items.forEach(i => {
-                const c = i.querySelector('.' + chkClass);
-                if(!c.checked) i.style.display = 'none';
-            });
-
-            // Add Temporary Total Row for PDF
-            const totalDiv = document.createElement('div');
-            totalDiv.id = "temp-pdf-total";
-            totalDiv.innerHTML = `
-                <div style="margin-top:20px; padding:15px; border-top:3px double #000; text-align:right; font-weight:bold; font-size:14px; background:#f9fafb;">
-                    ទឹកប្រាក់សរុបដែលបានជ្រើសរើស (TOTAL SELECTED): $${selectedTotal.toFixed(2)}
-                </div>
-                <div style="font-size:10px; color:#888; margin-top:5px; text-align:center;">របាយការណ៍ចេញដោយ៖ Roththa System | កាលបរិច្ឆេទ៖ ${new Date().toLocaleString('km-KH')}</div>
-            `;
-            container.appendChild(totalDiv);
-
-            // Generate PDF
-            const canvas = await html2canvas(container, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfW = pdf.internal.pageSize.getWidth();
-            const pdfH = (canvas.height * pdfW) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
-            pdf.save(`${fileName}_${new Date().getTime()}.pdf`);
-
-            // Reset UI
-            container.removeChild(totalDiv);
-            items.forEach(i => i.style.display = '');
-
-            // Back to Login automatically
-            setTimeout(() => {
-                alert("ទាញយកជោគជ័យ! ប្រព័ន្ធនឹងចាកចេញដោយស្វ័យប្រវត្តិ។");
-                window.goBack();
-            }, 1000);
-        };
-
-        // --- DOWNLOAD EXCEL ---
-        window.downloadExcel = (tableId, fileName, isOrder = false) => {
-            const rows = document.getElementById(tableId).getElementsByTagName('tr');
-            let data = [];
-            if(!isOrder) {
-                data.push(["ល.រ", "ឈ្មោះទំនិញ", "ស្តុក", "តម្លៃ ($)", "សរុបទឹកប្រាក់ ($)"]);
-                for(let r of rows) {
-                    const c = r.cells;
-                    data.push([c[1].innerText, c[3].innerText, c[4].innerText, c[5].innerText, (parseFloat(c[4].innerText) * parseFloat(c[5].innerText.replace('$',''))).toFixed(2)]);
-                }
-            } else {
-                data.push(["ល.រ", "អតិថិជន", "ទំនិញ", "សរុបទឹកប្រាក់ ($)"]);
-                for(let r of rows) {
-                    const c = r.cells;
-                    data.push([c[1].innerText, c[2].innerText, c[3].innerText, c[4].innerText]);
-                }
-            }
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Report");
-            XLSX.writeFile(wb, `${fileName}.xlsx`);
-        };
-
-        // --- HELPERS ---
+        window.del = async (col, id) => { if(confirm("Delete?")) { await deleteDoc(doc(db, col, id)); window.loadAll(); } };
         window.searchTable = (tid, q) => {
-            const rows = document.getElementById(tid).getElementsByTagName('tr');
+            const rows = document.getElementById(tid).children;
             for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
         };
-
+        window.highRow = (rid, el) => {
+            if(el.checked) document.getElementById(rid).classList.add('selected-row');
+            else document.getElementById(rid).classList.remove('selected-row');
+        };
         window.selectAll = (cls, master) => {
             const chks = document.getElementsByClassName(cls);
-            for(let c of chks) {
-                c.checked = master.checked;
-                window.rowHigh(c.dataset.id, c, cls[0]);
-            }
+            for(let c of chks) { c.checked = master.checked; window.highRow(c.closest('tr').id, c); }
         };
-
-        window.rowHigh = (id, el, prefix) => {
-            const r = document.getElementById(`${prefix}-row-${id}`);
-            if(el.checked) r.classList.add('selected-row');
-            else r.classList.remove('selected-row');
-        };
-
         document.getElementById('p-file').onchange = (e) => {
-            const r = new FileReader();
-            r.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
+            const r = new FileReader(); r.onload = (ev) => document.getElementById('p-img').value = ev.target.result;
             r.readAsDataURL(e.target.files[0]);
         };
-
     </script>
 </body>
 </html>
