@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Professional System</title>
+    <title>Roththa Shop - Customer System v17.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -22,15 +22,12 @@
     <div class="bg-blue-800 p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-30 text-white border-b-4 border-yellow-500">
         <div class="flex justify-between items-center mb-4">
             <div>
-                <h1 class="text-lg font-bold italic uppercase tracking-wider">Roththa Shop</h1>
+                <h1 class="text-lg font-bold italic uppercase">Roththa Shop</h1>
                 <p id="user-display" class="text-[10px] opacity-90 italic text-yellow-300">ស្វាគមន៍អតិថិជន</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.toggleAccountModal()" class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold active:scale-95 transition-all">
+                <button onclick="window.toggleAccountModal()" class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold">
                     <i class="fas fa-user-circle mr-1"></i> គណនី
-                </button>
-                <button onclick="window.toggleHistoryModal()" class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold active:scale-95 transition-all">
-                    <i class="fas fa-history mr-1"></i> ប្រវត្តិ
                 </button>
             </div>
         </div>
@@ -69,32 +66,19 @@
         </div>
     </div>
 
-    <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleHistoryModal()"></div>
-    <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-        <h2 class="text-center font-bold text-gray-800 mb-2 text-[11px] italic uppercase">ប្រវត្តិការកម្មង់</h2>
-        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-4 flex justify-between items-center">
-            <span class="text-[10px] font-bold text-blue-800 uppercase">ទឹកប្រាក់សរុបគ្រប់កុម្ម៉ង់:</span>
-            <span id="history-grand-total" class="text-lg font-bold text-blue-700">$0.00</span>
-        </div>
-        <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar px-1"></div>
-        <button onclick="window.clearHistory()" class="text-center text-red-500 text-[11px] font-bold py-4 active:bg-red-50 rounded-xl transition-all">សម្អាតប្រវត្តិទាំងអស់</button>
-    </div>
-
     <div id="account-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleAccountModal()"></div>
     <div id="account-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-8 shadow-2xl text-center">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-md overflow-hidden">
             <img id="acc-photo" src="https://ui-avatars.com/api/?name=User" class="w-full h-full object-cover">
         </div>
         <h2 id="acc-name" class="text-xl font-bold text-gray-800">ឈ្មោះអតិថិជន</h2>
         <p id="acc-id" class="text-[10px] text-gray-400 mb-6 italic">Telegram ID: ...</p>
-        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs active:bg-gray-200">បិទវិញ</button>
+        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs">បិទវិញ</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -122,177 +106,160 @@
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
                 currentLoc = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-            }, null, { enableHighAccuracy: true });
+            });
         }
 
-        // --- SAFE CHECKOUT LOGIC ---
-        window.handleCheckout = async () => {
-    if (cart.length === 0) return alert("សូមរើសទំនិញ!");
-    const btn = document.getElementById('btn-checkout');
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
-
-    const now = new Date();
-    const khmerTime = now.toLocaleString('km-KH', { 
-        timeZone: 'Asia/Phnom_Penh',
-        hour12: true,
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
-    });
-
-    const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
-    const total_str = `$${total.toFixed(2)}`;
-
-    try {
-        // --- ជំហានទី ១: រក្សាទុកវិក្កយបត្រក្នុង Firebase ---
-        await addDoc(collection(db, "orders"), {
-            customer_name: customerName,
-            items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-            total_amount: total_str,
-            location: currentLoc,
-            createdAt: serverTimestamp()
-        });
-
-        // --- ជំហានទី ២: ដកស្តុកចេញពីផលិតផលនីមួយៗ (បន្ថែមថ្មី) ---
-        // យើងប្រើ Promise.all ដើម្បីដកស្តុកទំនិញទាំងអស់ក្នុងកន្ត្រកក្នុងពេលតែមួយ
-        const updatePromises = cart.map(async (item) => {
-            const productRef = doc(db, "products", item.id);
-            const productSnap = await getDoc(productRef);
-            
-            if (productSnap.exists()) {
-                const currentStock = productSnap.data().stock || 0;
-                const newStock = Math.max(0, currentStock - item.qty); // ការពារកុំឱ្យស្តុកជាប់សញ្ញាដក
-                return updateDoc(productRef, { stock: newStock });
-            }
-        });
-        await Promise.all(updatePromises);
-
-        // --- ជំហានទី ៣: រៀបចំសារផ្ញើទៅ Telegram ---
-        let messageText = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
-        messageText += `📅 កាលបរិច្ឆេទ: ${khmerTime}\n`;
-        messageText += `👤 អតិថិជន: ${customerName}\n`;
-        messageText += `📍 ទីតាំង: ${currentLoc}\n`;
-        messageText += `--------------------------\n`;
-        
-        cart.forEach(item => {
-            const safeName = item.name.replace(/[*_`\[\]]/g, ''); 
-            messageText += `• ${safeName} (x${item.qty}) = $${(item.qty * item.price).toFixed(2)}\n`;
-        });
-        
-        messageText += `--------------------------\n`;
-        messageText += `💰 *សរុបរួម: ${total_str}*`;
-
-        const res = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                chat_id: "7453536903", 
-                text: messageText, 
-                parse_mode: "Markdown", 
-                disable_web_page_preview: true 
-            })
-        });
-
-        if(res.ok) {
-            alert("✅ បញ្ជាទិញជោគជ័យ និងបានកាត់ស្តុក!"); 
-            cart = []; 
-            window.updateCartUI(); 
-            window.toggleCartModal();
-        }
-
-    } catch (e) { 
-        console.error(e);
-        alert("❌ មានបញ្ហា: " + e.message); 
-    }
-    btn.disabled = false;
-    btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
-};
-
-
+        // --- CART LOGIC ---
         window.updateCartUI = () => {
             const count = cart.reduce((s, i) => s + Number(i.qty), 0);
             const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
+            
             document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
             document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            
             document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 shadow-sm">
-                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border" crossorigin="anonymous">
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border">
                     <div class="flex-grow text-left">
-                        <div class="font-bold text-[10px] line-clamp-1 text-gray-700">${item.name}</div>
+                        <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
                         <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
                     </div>
-                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-100">
-                        <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center font-bold text-gray-400">-</button>
-                        <input type="number" value="${item.qty}" oninput="window.updateManualQty('${item.id}', this.value)" class="w-8 text-center font-bold text-[11px] text-blue-800 outline-none bg-transparent">
-                        <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-blue-600 font-bold">+</button>
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border">
+                        <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 text-gray-400 font-bold">-</button>
+                        <input type="number" value="${item.qty}" 
+                            onchange="window.manualInputQty('${item.id}', this.value)"
+                            class="w-10 text-center font-bold text-[11px] outline-none border-none bg-transparent">
+                        <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 text-blue-600 font-bold">+</button>
                     </div>
-                    <button onclick="window.removeFromCart('${item.id}')" class="text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
                 </div>`).join('');
         };
 
-        window.addToCart = (id) => { const p = allProducts.find(i => i.id === id); const f = cart.find(i => i.id === id); if(f) f.qty++; else cart.push({...p, qty: 1}); window.updateCartUI(); tg.HapticFeedback.impactOccurred('light'); };
-        window.changeQty = (id, d) => { const i = cart.find(x => x.id === id); if(i) { i.qty = Math.max(1, Number(i.qty) + d); window.updateCartUI(); } };
-        window.removeFromCart = (id) => { if(confirm("លុបទំនិញ?")) { cart = cart.filter(i => i.id !== id); window.updateCartUI(); } };
-        window.updateManualQty = (id, val) => { const i = cart.find(x => x.id === id); if(i) { let n = parseInt(val); i.qty = (isNaN(n) || n < 1) ? 1 : n; window.updateCartUI(); } };
-        window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
-        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
-        
-        window.toggleHistoryModal = () => {
-            const m = document.getElementById('history-modal'); m.classList.toggle('active'); document.getElementById('history-overlay').classList.toggle('hidden');
-            if(m.classList.contains('active')) {
-                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                const grandTotal = h.reduce((s, o) => s + parseFloat(o.total), 0);
-                document.getElementById('history-grand-total').innerText = `$${grandTotal.toFixed(2)}`;
-                document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-gray-50 p-3 rounded-xl border mb-2 text-[10px] flex justify-between items-center shadow-sm">
-                        <span class="text-gray-500 font-bold">📅 ${o.date}</span>
-                        <span class="font-bold text-red-600">$${Number(o.total).toFixed(2)}</span>
-                    </div>`).join('') || "<p class='text-center py-10 text-gray-400 italic text-[10px]'>មិនទាន់មានប្រវត្តិ</p>";
+        window.manualInputQty = (id, val) => {
+            const i = cart.find(x => x.id === id);
+            const p = allProducts.find(x => x.id === id);
+            let n = parseInt(val);
+            if (isNaN(n) || n <= 0) n = 1;
+            if (n > p.stock) { alert("ក្នុងស្តុកមានត្រឹមតែ " + p.stock); n = p.stock; }
+            if (i) { i.qty = n; window.updateCartUI(); }
+        };
+
+        window.addToCart = (id) => {
+            const p = allProducts.find(i => i.id === id);
+            if(p.stock <= 0) return alert("អស់ពីស្តុកហើយ!");
+            const f = cart.find(i => i.id === id);
+            if(f) {
+                if(f.qty < p.stock) f.qty++;
+                else alert("អស់ស្តុកហើយ!");
+            } else cart.push({...p, qty: 1});
+            window.updateCartUI();
+            tg.HapticFeedback.impactOccurred('light');
+        };
+
+        window.changeQty = (id, d) => {
+            const i = cart.find(x => x.id === id);
+            const p = allProducts.find(x => x.id === id);
+            if(i) {
+                if(d > 0 && i.qty >= p.stock) return alert("អស់ស្តុកហើយ!");
+                i.qty = Math.max(0, Number(i.qty) + d);
+                if(i.qty === 0) cart = cart.filter(x => x.id !== id);
+                window.updateCartUI();
             }
         };
 
-        window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
+        // --- CHECKOUT & STOCK DEDUCTION ---
+        window.handleCheckout = async () => {
+            if (cart.length === 0) return alert("សូមរើសទំនិញ!");
+            const btn = document.getElementById('btn-checkout');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
+
+            try {
+                // 1. កាត់ស្តុកចេញពី Firebase
+                const updatePromises = cart.map(async (item) => {
+                    const productRef = doc(db, "products", item.id);
+                    const productSnap = await getDoc(productRef);
+                    if (productSnap.exists()) {
+                        const currentStock = productSnap.data().stock || 0;
+                        return updateDoc(productRef, { stock: Math.max(0, currentStock - item.qty) });
+                    }
+                });
+                await Promise.all(updatePromises);
+
+                // 2. រក្សាទុក Order
+                const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+                await addDoc(collection(db, "orders"), {
+                    customer_name: customerName,
+                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+                    total_amount: `$${total.toFixed(2)}`,
+                    location: currentLoc,
+                    createdAt: serverTimestamp()
+                });
+
+                // 3. ផ្ញើ Telegram
+                let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: ${currentLoc}\n--------------------------\n`;
+                cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
+                msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
+
+                await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: "7453536903", text: msg, parse_mode: "Markdown" })
+                });
+
+                alert("✅ បញ្ជាទិញជោគជ័យ!");
+                cart = []; window.updateCartUI(); window.toggleCartModal(); window.init();
+            } catch (e) { alert("❌ បញ្ហាការតភ្ជាប់!"); }
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
+        };
+
+        // --- UI HELPERS ---
+        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
+        window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
+        
         window.filterByCategory = (cat, event) => {
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
             if (event) event.currentTarget.classList.add('active');
             renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
         };
-        window.filterProducts = () => { const v = document.getElementById('search-box').value.toLowerCase(); renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v))); };
+
+        window.filterProducts = () => {
+            const v = document.getElementById('search-box').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v)));
+        };
 
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center active:scale-95 transition-all">
-                    <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50">
-                        <img src="${p.img || ''}" class="w-full h-full object-cover" crossorigin="anonymous">
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                    <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50 relative">
+                        <img src="${p.img || ''}" class="w-full h-full object-cover">
+                        ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[8px] font-bold">អស់ស្តុក</div>' : ''}
                     </div>
-                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
-                    <div class="text-red-600 font-bold text-[10px] mb-2">$${Number(p.price).toFixed(2)}</div>
-                    <button onclick="window.addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-[9px] font-bold">បន្ថែម</button>
+                    <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700">${p.name}</h3>
+                    <div class="flex justify-between w-full px-1 mb-2">
+                        <span class="text-red-600 font-bold text-[10px]">$${Number(p.price).toFixed(2)}</span>
+                        <span class="text-[8px] text-gray-400 italic">ស្តុក: ${p.stock || 0}</span>
+                    </div>
+                    <button onclick="window.addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full ${p.stock <= 0 ? 'bg-gray-300' : 'bg-blue-600'} text-white py-1.5 rounded-lg text-[9px] font-bold transition-all active:scale-90">បន្ថែម</button>
                 </div>`).join('');
         }
 
-        async function init() {
-            try {
-                const [cSnap, pSnap] = await Promise.all([
-                    getDocs(collection(db, "categories")),
-                    getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")))
-                ]);
-                allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                const list = document.getElementById('cat-list');
-                cSnap.forEach(d => {
-                    list.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}', event)" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm transition-all">${d.data().name}</button>`;
-                });
-                renderProducts(allProducts);
-            } catch (e) { console.error(e); }
+        window.init = async () => {
+            const [cSnap, pSnap] = await Promise.all([
+                getDocs(collection(db, "categories")),
+                getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")))
+            ]);
+            allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            const list = document.getElementById('cat-list');
+            list.innerHTML = `<button onclick="window.filterByCategory('All', event)" class="cat-btn active whitespace-nowrap px-6 py-2 rounded-full text-[10px] font-bold border shadow-sm transition-all bg-white text-gray-500">ទាំងអស់</button>`;
+            cSnap.forEach(d => {
+                list.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}', event)" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm">${d.data().name}</button>`;
+            });
+            renderProducts(allProducts);
         }
-        init();
-
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) return false;
-        };
+        window.init();
     </script>
 </body>
 </html>
