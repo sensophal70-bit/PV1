@@ -127,80 +127,87 @@
 
         // --- SAFE CHECKOUT LOGIC ---
         window.handleCheckout = async () => {
-            if (cart.length === 0) return alert("សូមរើសទំនិញ!");
-            const btn = document.getElementById('btn-checkout');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
+    if (cart.length === 0) return alert("សូមរើសទំនិញ!");
+    const btn = document.getElementById('btn-checkout');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
 
-            const now = new Date();
-            const khmerTime = now.toLocaleString('km-KH', { 
-                timeZone: 'Asia/Phnom_Penh',
-                hour12: true,
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit'
-            });
+    const now = new Date();
+    const khmerTime = now.toLocaleString('km-KH', { 
+        timeZone: 'Asia/Phnom_Penh',
+        hour12: true,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+    });
 
-            const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
-            const total_str = `$${total.toFixed(2)}`;
+    const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
+    const total_str = `$${total.toFixed(2)}`;
 
-            try {
-                // 1. Save to Firebase
-                await addDoc(collection(db, "orders"), {
-                    customer_name: customerName,
-                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-                    total_amount: total_str,
-                    location: currentLoc,
-                    createdAt: serverTimestamp()
-                });
+    try {
+        // --- ជំហានទី ១: រក្សាទុកវិក្កយបត្រក្នុង Firebase ---
+        await addDoc(collection(db, "orders"), {
+            customer_name: customerName,
+            items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+            total_amount: total_str,
+            location: currentLoc,
+            createdAt: serverTimestamp()
+        });
 
-                // 2. Prepare Telegram Message (Cleaned from special chars to avoid Markdown Error)
-                const contactLink = user?.username ? `https://t.me/${user.username}` : `tg://user?id=${user?.id}`;
-                
-                let messageText = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
-                messageText += `📅 កាលបរិច្ឆេទ: ${khmerTime}\n`;
-                messageText += `👤 អតិថិជន: ${customerName}\n`;
-                messageText += `📍 ទីតាំង: ${currentLoc}\n`;
-                messageText += `--------------------------\n`;
-                
-                cart.forEach(item => {
-                    // លុបសញ្ញាដែលអាចនាំឱ្យ Error Markdown
-                    const safeName = item.name.replace(/[*_`\[\]]/g, ''); 
-                    messageText += `• ${safeName} (x${item.qty}) = $${(item.qty * item.price).toFixed(2)}\n`;
-                });
-                
-                messageText += `--------------------------\n`;
-                messageText += `💰 *សរុបរួម: ${total_str}*`;
-
-                const res = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        chat_id: "7453536903", 
-                        text: messageText, 
-                        parse_mode: "Markdown", 
-                        disable_web_page_preview: true 
-                    })
-                });
-
-                if(res.ok) {
-                    const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                    h.unshift({ date: khmerTime, total: total });
-                    localStorage.setItem('my_orders', JSON.stringify(h.slice(0, 50)));
-                    alert("✅ បញ្ជូនជោគជ័យ!"); 
-                    cart = []; 
-                    window.updateCartUI(); 
-                    window.toggleCartModal();
-                } else {
-                    const err = await res.json();
-                    alert("❌ Telegram Error: " + err.description);
-                }
-            } catch (e) { 
-                console.error(e);
-                alert("❌ បញ្ហាការតភ្ជាប់!"); 
+        // --- ជំហានទី ២: ដកស្តុកចេញពីផលិតផលនីមួយៗ (បន្ថែមថ្មី) ---
+        // យើងប្រើ Promise.all ដើម្បីដកស្តុកទំនិញទាំងអស់ក្នុងកន្ត្រកក្នុងពេលតែមួយ
+        const updatePromises = cart.map(async (item) => {
+            const productRef = doc(db, "products", item.id);
+            const productSnap = await getDoc(productRef);
+            
+            if (productSnap.exists()) {
+                const currentStock = productSnap.data().stock || 0;
+                const newStock = Math.max(0, currentStock - item.qty); // ការពារកុំឱ្យស្តុកជាប់សញ្ញាដក
+                return updateDoc(productRef, { stock: newStock });
             }
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
-        };
+        });
+        await Promise.all(updatePromises);
+
+        // --- ជំហានទី ៣: រៀបចំសារផ្ញើទៅ Telegram ---
+        let messageText = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
+        messageText += `📅 កាលបរិច្ឆេទ: ${khmerTime}\n`;
+        messageText += `👤 អតិថិជន: ${customerName}\n`;
+        messageText += `📍 ទីតាំង: ${currentLoc}\n`;
+        messageText += `--------------------------\n`;
+        
+        cart.forEach(item => {
+            const safeName = item.name.replace(/[*_`\[\]]/g, ''); 
+            messageText += `• ${safeName} (x${item.qty}) = $${(item.qty * item.price).toFixed(2)}\n`;
+        });
+        
+        messageText += `--------------------------\n`;
+        messageText += `💰 *សរុបរួម: ${total_str}*`;
+
+        const res = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                chat_id: "7453536903", 
+                text: messageText, 
+                parse_mode: "Markdown", 
+                disable_web_page_preview: true 
+            })
+        });
+
+        if(res.ok) {
+            alert("✅ បញ្ជាទិញជោគជ័យ និងបានកាត់ស្តុក!"); 
+            cart = []; 
+            window.updateCartUI(); 
+            window.toggleCartModal();
+        }
+
+    } catch (e) { 
+        console.error(e);
+        alert("❌ មានបញ្ហា: " + e.message); 
+    }
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
+};
+
 
         window.updateCartUI = () => {
             const count = cart.reduce((s, i) => s + Number(i.qty), 0);
