@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Full Fixed Date Time</title>
+    <title>Roththa Shop - Professional System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -13,8 +13,8 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .modal-up { transition: transform 0.3s ease-out; transform: translateY(100%); }
         .modal-up.active { transform: translateY(0); }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .cat-btn.active { background-color: #1e40af !important; color: white !important; border-color: #1e40af !important; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="pb-32">
@@ -42,7 +42,7 @@
     </div>
 
     <div class="px-3 mt-4">
-        <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10"></div>
+        <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10 text-center"></div>
     </div>
 
     <div id="cart-bar" onclick="window.toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
@@ -72,7 +72,11 @@
     <div id="history-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleHistoryModal()"></div>
     <div id="history-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[75vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-        <h2 class="text-center font-bold text-gray-800 mb-4 text-[11px] border-b pb-2 italic uppercase">ប្រវត្តិការកម្មង់</h2>
+        <h2 class="text-center font-bold text-gray-800 mb-2 text-[11px] italic uppercase">ប្រវត្តិការកម្មង់</h2>
+        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-4 flex justify-between items-center">
+            <span class="text-[10px] font-bold text-blue-800 uppercase">ទឹកប្រាក់សរុបគ្រប់កុម្ម៉ង់:</span>
+            <span id="history-grand-total" class="text-lg font-bold text-blue-700">$0.00</span>
+        </div>
         <div id="customer-history-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar px-1"></div>
         <button onclick="window.clearHistory()" class="text-center text-red-500 text-[11px] font-bold py-4 active:bg-red-50 rounded-xl transition-all">សម្អាតប្រវត្តិទាំងអស់</button>
     </div>
@@ -121,14 +125,13 @@
             }, null, { enableHighAccuracy: true });
         }
 
-        // --- FIXED CHECKOUT WITH DATE TIME ---
+        // --- SAFE CHECKOUT LOGIC ---
         window.handleCheckout = async () => {
             if (cart.length === 0) return alert("សូមរើសទំនិញ!");
             const btn = document.getElementById('btn-checkout');
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
 
-            // បង្កើតកាលបរិច្ឆេទសម្រាប់ Telegram (Asia/Phnom_Penh)
             const now = new Date();
             const khmerTime = now.toLocaleString('km-KH', { 
                 timeZone: 'Asia/Phnom_Penh',
@@ -141,7 +144,7 @@
             const total_str = `$${total.toFixed(2)}`;
 
             try {
-                // ១. រក្សាទុកក្នុង Firebase
+                // 1. Save to Firebase
                 await addDoc(collection(db, "orders"), {
                     customer_name: customerName,
                     items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
@@ -150,18 +153,19 @@
                     createdAt: serverTimestamp()
                 });
 
-                // ២. បញ្ជូនទៅ Telegram
+                // 2. Prepare Telegram Message (Cleaned from special chars to avoid Markdown Error)
                 const contactLink = user?.username ? `https://t.me/${user.username}` : `tg://user?id=${user?.id}`;
                 
-                // បង្កើតសារអត្ថបទ (ធានាថាជួរបញ្ជូន Date/Time ត្រឹមត្រូវ)
                 let messageText = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
                 messageText += `📅 កាលបរិច្ឆេទ: ${khmerTime}\n`;
-                messageText += `👤 អតិថិជន: [${customerName}](${contactLink})\n`;
-                messageText += `📍 ទីតាំង: [ចុចមើលទីតាំង](${currentLoc})\n`;
+                messageText += `👤 អតិថិជន: ${customerName}\n`;
+                messageText += `📍 ទីតាំង: ${currentLoc}\n`;
                 messageText += `--------------------------\n`;
                 
                 cart.forEach(item => {
-                    messageText += `• ${item.name} (x${item.qty}) = $${(item.qty * item.price).toFixed(2)}\n`;
+                    // លុបសញ្ញាដែលអាចនាំឱ្យ Error Markdown
+                    const safeName = item.name.replace(/[*_`\[\]]/g, ''); 
+                    messageText += `• ${safeName} (x${item.qty}) = $${(item.qty * item.price).toFixed(2)}\n`;
                 });
                 
                 messageText += `--------------------------\n`;
@@ -181,11 +185,14 @@
                 if(res.ok) {
                     const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
                     h.unshift({ date: khmerTime, total: total });
-                    localStorage.setItem('my_orders', JSON.stringify(h.slice(0, 10)));
+                    localStorage.setItem('my_orders', JSON.stringify(h.slice(0, 50)));
                     alert("✅ បញ្ជូនជោគជ័យ!"); 
                     cart = []; 
                     window.updateCartUI(); 
                     window.toggleCartModal();
+                } else {
+                    const err = await res.json();
+                    alert("❌ Telegram Error: " + err.description);
                 }
             } catch (e) { 
                 console.error(e);
@@ -198,60 +205,60 @@
         window.updateCartUI = () => {
             const count = cart.reduce((s, i) => s + Number(i.qty), 0);
             const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
-            if (count === 0) {
-                document.getElementById('cart-bar').classList.add('hidden');
-                if (document.getElementById('cart-modal').classList.contains('active')) window.toggleCartModal();
-            } else {
-                document.getElementById('cart-bar').classList.remove('hidden');
-            }
+            document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
             document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
             document.getElementById('cart-items-list').innerHTML = cart.map(item => `
-                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 shadow-sm relative">
-                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border">
+                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 shadow-sm">
+                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border" crossorigin="anonymous">
                     <div class="flex-grow text-left">
-                        <div class="font-bold text-[10px] line-clamp-1 text-gray-700 pr-6">${item.name}</div>
+                        <div class="font-bold text-[10px] line-clamp-1 text-gray-700">${item.name}</div>
                         <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
                     </div>
-                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-100 mr-1">
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-100">
                         <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center font-bold text-gray-400">-</button>
-                        <input type="number" value="${item.qty}" inputmode="numeric" oninput="window.updateManualQty('${item.id}', this.value)" class="w-10 text-center font-bold text-[12px] text-blue-800 outline-none border-none p-0 bg-transparent">
+                        <input type="number" value="${item.qty}" oninput="window.updateManualQty('${item.id}', this.value)" class="w-8 text-center font-bold text-[11px] text-blue-800 outline-none bg-transparent">
                         <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-blue-600 font-bold">+</button>
                     </div>
                     <button onclick="window.removeFromCart('${item.id}')" class="text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
                 </div>`).join('');
         };
 
-        window.removeFromCart = (id) => { if(confirm("លុបទំនិញ?")) { cart = cart.filter(i => i.id !== id); window.updateCartUI(); tg.HapticFeedback.notificationOccurred('success'); } };
         window.addToCart = (id) => { const p = allProducts.find(i => i.id === id); const f = cart.find(i => i.id === id); if(f) f.qty++; else cart.push({...p, qty: 1}); window.updateCartUI(); tg.HapticFeedback.impactOccurred('light'); };
         window.changeQty = (id, d) => { const i = cart.find(x => x.id === id); if(i) { i.qty = Math.max(1, Number(i.qty) + d); window.updateCartUI(); } };
+        window.removeFromCart = (id) => { if(confirm("លុបទំនិញ?")) { cart = cart.filter(i => i.id !== id); window.updateCartUI(); } };
         window.updateManualQty = (id, val) => { const i = cart.find(x => x.id === id); if(i) { let n = parseInt(val); i.qty = (isNaN(n) || n < 1) ? 1 : n; window.updateCartUI(); } };
+        window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
+        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
+        
+        window.toggleHistoryModal = () => {
+            const m = document.getElementById('history-modal'); m.classList.toggle('active'); document.getElementById('history-overlay').classList.toggle('hidden');
+            if(m.classList.contains('active')) {
+                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
+                const grandTotal = h.reduce((s, o) => s + parseFloat(o.total), 0);
+                document.getElementById('history-grand-total').innerText = `$${grandTotal.toFixed(2)}`;
+                document.getElementById('customer-history-list').innerHTML = h.map(o => `
+                    <div class="bg-gray-50 p-3 rounded-xl border mb-2 text-[10px] flex justify-between items-center shadow-sm">
+                        <span class="text-gray-500 font-bold">📅 ${o.date}</span>
+                        <span class="font-bold text-red-600">$${Number(o.total).toFixed(2)}</span>
+                    </div>`).join('') || "<p class='text-center py-10 text-gray-400 italic text-[10px]'>មិនទាន់មានប្រវត្តិ</p>";
+            }
+        };
+
+        window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
         window.filterByCategory = (cat, event) => {
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
             if (event) event.currentTarget.classList.add('active');
             renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
         };
-        window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
-        window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
-        window.toggleHistoryModal = () => {
-            const m = document.getElementById('history-modal'); m.classList.toggle('active'); document.getElementById('history-overlay').classList.toggle('hidden');
-            if(m.classList.contains('active')) {
-                const h = JSON.parse(localStorage.getItem('my_orders') || "[]");
-                document.getElementById('customer-history-list').innerHTML = h.map(o => `
-                    <div class="bg-gray-50 p-3 rounded-xl border mb-2 text-[10px] flex justify-between items-center shadow-sm">
-                        <span class="text-gray-500 font-bold">📅 ${o.date}</span><span class="font-bold text-red-600">$${Number(o.total).toFixed(2)}</span>
-                    </div>`).join('') || "<p class='text-center py-10 text-gray-400 italic text-[10px]'>មិនទាន់មានប្រវត្តិ</p>";
-            }
-        };
-        window.clearHistory = () => { if(confirm("លុបប្រវត្តិ?")) { localStorage.removeItem('my_orders'); window.toggleHistoryModal(); } };
         window.filterProducts = () => { const v = document.getElementById('search-box').value.toLowerCase(); renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(v))); };
 
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
                 <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center active:scale-95 transition-all">
                     <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50">
-                        <img src="${p.img || ''}" class="w-full h-full object-cover">
+                        <img src="${p.img || ''}" class="w-full h-full object-cover" crossorigin="anonymous">
                     </div>
                     <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700 text-center">${p.name}</h3>
                     <div class="text-red-600 font-bold text-[10px] mb-2">$${Number(p.price).toFixed(2)}</div>
@@ -261,8 +268,10 @@
 
         async function init() {
             try {
-                const cSnap = await getDocs(collection(db, "categories"));
-                const pSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+                const [cSnap, pSnap] = await Promise.all([
+                    getDocs(collection(db, "categories")),
+                    getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")))
+                ]);
                 allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 const list = document.getElementById('cat-list');
                 cSnap.forEach(d => {
@@ -272,20 +281,11 @@
             } catch (e) { console.error(e); }
         }
         init();
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = e => {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) return false;
+        };
     </script>
-    <script>
-    // ការពារចុច Mouse ស្តាំ
-    document.addEventListener('contextmenu', event => event.preventDefault());
-
-    // ការពារចុច Shortcut ផ្សេងៗ (F12, Ctrl+Shift+I, etc.)
-    document.onkeydown = function(e) {
-        if(e.keyCode == 123) return false;
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-    }
-</script>
-
 </body>
 </html>
