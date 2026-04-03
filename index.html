@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Customer System v17.0</title>
+    <title>Roththa Shop - Customer System v18.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -53,7 +53,7 @@
     <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity" onclick="window.toggleCartModal()"></div>
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[90vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-center font-bold text-blue-900 mb-4 text-[11px] uppercase border-b pb-2 italic">កន្ត្រកទំនិញរបស់អ្នក</h2>
+        <h2 class="text-center font-bold text-blue-900 mb-4 text-[11px] uppercase border-b pb-2 italic text-blue-800">កន្ត្រកទំនិញរបស់អ្នក</h2>
         <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
         <div class="mt-4 pt-4 border-t border-gray-100">
             <div class="flex justify-between items-center mb-6 px-2">
@@ -64,16 +64,6 @@
                 <i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram
             </button>
         </div>
-    </div>
-
-    <div id="account-overlay" class="fixed inset-0 bg-black/60 z-50 hidden" onclick="window.toggleAccountModal()"></div>
-    <div id="account-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-8 shadow-2xl text-center">
-        <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4 border-4 border-white shadow-md overflow-hidden">
-            <img id="acc-photo" src="https://ui-avatars.com/api/?name=User" class="w-full h-full object-cover">
-        </div>
-        <h2 id="acc-name" class="text-xl font-bold text-gray-800">ឈ្មោះអតិថិជន</h2>
-        <p id="acc-id" class="text-[10px] text-gray-400 mb-6 italic">Telegram ID: ...</p>
-        <button onclick="window.toggleAccountModal()" class="w-full py-4 bg-gray-100 rounded-2xl font-bold text-gray-500 text-xs">បិទវិញ</button>
     </div>
 
     <script type="module">
@@ -100,9 +90,6 @@
         const telegramId = user?.id || null;
 
         document.getElementById('user-display').innerText = `សួស្តី, ${customerName}`;
-        document.getElementById('acc-name').innerText = customerName;
-        document.getElementById('acc-id').innerText = `ID: ${telegramId || 'N/A'}`;
-        if(user?.photo_url) document.getElementById('acc-photo').src = user.photo_url;
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
@@ -110,7 +97,7 @@
             });
         }
 
-        // --- UI LOGIC ---
+        // --- CART UI UPDATES ---
         window.updateCartUI = () => {
             const count = cart.reduce((s, i) => s + Number(i.qty), 0);
             const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
@@ -122,38 +109,27 @@
             
             document.getElementById('cart-items-list').innerHTML = cart.map(item => `
                 <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border">
+                    <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border bg-white">
                     <div class="flex-grow text-left">
                         <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
                         <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
                     </div>
                     <div class="flex items-center gap-1 bg-white p-1 rounded-xl border">
                         <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 text-gray-400 font-bold">-</button>
-                        <input type="number" value="${item.qty}" 
-                            onchange="window.manualInputQty('${item.id}', this.value)"
-                            class="w-10 text-center font-bold text-[11px] outline-none border-none bg-transparent">
+                        <span class="w-8 text-center font-bold text-[11px]">${item.qty}</span>
                         <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 text-blue-600 font-bold">+</button>
                     </div>
+                    <button onclick="window.removeFromCart('${item.id}')" class="w-8 h-8 flex items-center justify-center text-red-500 bg-red-50 rounded-lg ml-1">
+                        <i class="fas fa-trash-alt text-[10px]"></i>
+                    </button>
                 </div>`).join('');
-        };
-
-        window.manualInputQty = (id, val) => {
-            const i = cart.find(x => x.id === id);
-            const p = allProducts.find(x => x.id === id);
-            let n = parseInt(val);
-            if (isNaN(n) || n <= 0) n = 1;
-            if (n > p.stock) { alert("ក្នុងស្តុកមានត្រឹមតែ " + p.stock); n = p.stock; }
-            if (i) { i.qty = n; window.updateCartUI(); }
         };
 
         window.addToCart = (id) => {
             const p = allProducts.find(i => i.id === id);
-            if(p.stock <= 0) return alert("អស់ពីស្តុកហើយ!");
+            if(p.stock <= 0) return alert("អស់ស្តុក!");
             const f = cart.find(i => i.id === id);
-            if(f) {
-                if(f.qty < p.stock) f.qty++;
-                else alert("អស់ស្តុកហើយ!");
-            } else cart.push({...p, qty: 1});
+            if(f) { if(f.qty < p.stock) f.qty++; } else cart.push({...p, qty: 1});
             window.updateCartUI();
             tg.HapticFeedback.impactOccurred('light');
         };
@@ -169,7 +145,13 @@
             }
         };
 
-        // --- CHECKOUT WITH CUSTOMER LINK ---
+        // មុខងារលុបទំនិញចេញពីកន្ត្រក
+        window.removeFromCart = (id) => {
+            cart = cart.filter(x => x.id !== id);
+            window.updateCartUI();
+        };
+
+        // --- CHECKOUT ---
         window.handleCheckout = async () => {
             if (cart.length === 0) return alert("សូមរើសទំនិញ!");
             const btn = document.getElementById('btn-checkout');
@@ -178,39 +160,35 @@
 
             try {
                 // 1. Update Stock
-                const updatePromises = cart.map(async (item) => {
-                    const productRef = doc(db, "products", item.id);
-                    const productSnap = await getDoc(productRef);
-                    if (productSnap.exists()) {
-                        const currentStock = productSnap.data().stock || 0;
-                        return updateDoc(productRef, { stock: Math.max(0, currentStock - item.qty) });
+                const updates = cart.map(async (item) => {
+                    const ref = doc(db, "products", item.id);
+                    const snap = await getDoc(ref);
+                    if (snap.exists()) {
+                        const s = snap.data().stock || 0;
+                        return updateDoc(ref, { stock: Math.max(0, s - item.qty) });
                     }
                 });
-                await Promise.all(updatePromises);
+                await Promise.all(updates);
 
-                // 2. Save Order
+                // 2. Prepare Date (កាលបរិច្ឆេទ)
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('km-KH');
+                const timeStr = now.toLocaleTimeString('km-KH');
+
+                // 3. Prepare Message
                 const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-                await addDoc(collection(db, "orders"), {
-                    customer_name: customerName,
-                    customer_id: telegramId,
-                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-                    total_amount: `$${total.toFixed(2)}`,
-                    location: currentLoc,
-                    createdAt: serverTimestamp()
-                });
-
-                // 3. Prepare Message with Link Account
-                // បង្កើត Link សម្រាប់ចុចទៅ Account អតិថិជន
                 let userLink = telegramId ? `[${customerName}](tg://user?id=${telegramId})` : `*${customerName}*`;
 
                 let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
+                msg += `📅 កាលបរិច្ឆេទ: ${dateStr} | ម៉ោង: ${timeStr}\n`;
                 msg += `👤 អតិថិជន: ${userLink}\n`;
-                msg += `📍 ទីតាំង: [ចុចមើលទីតាំង](${currentLoc})\n`;
+                msg += `📍 ទីតាំង: [ចុចមើល](${currentLoc})\n`;
                 msg += `--------------------------\n`;
                 cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
                 msg += `--------------------------\n`;
                 msg += `💰 *សរុប: $${total.toFixed(2)}*`;
 
+                // 4. Send Telegram
                 await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -222,6 +200,14 @@
                     })
                 });
 
+                // 5. Add to Firebase
+                await addDoc(collection(db, "orders"), {
+                    customer_name: customerName,
+                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+                    total_amount: `$${total.toFixed(2)}`,
+                    createdAt: serverTimestamp()
+                });
+
                 alert("✅ បញ្ជាទិញជោគជ័យ!");
                 cart = []; window.updateCartUI(); window.toggleCartModal(); window.init();
             } catch (e) { alert("❌ បញ្ហាការតភ្ជាប់!"); }
@@ -229,9 +215,8 @@
             btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
         };
 
-        // --- HELPERS ---
+        // --- OTHER FUNCTIONS ---
         window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
-        window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
         
         window.filterByCategory = (cat, event) => {
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
@@ -252,9 +237,9 @@
                         ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[8px] font-bold">អស់ស្តុក</div>' : ''}
                     </div>
                     <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700">${p.name}</h3>
-                    <div class="flex justify-between w-full px-1 mb-2">
-                        <span class="text-red-600 font-bold text-[10px]">$${Number(p.price).toFixed(2)}</span>
-                        <span class="text-[8px] text-gray-400 italic">ស្តុក: ${p.stock || 0}</span>
+                    <div class="flex justify-between w-full px-1 mb-2 text-[10px]">
+                        <span class="text-red-600 font-bold">$${Number(p.price).toFixed(2)}</span>
+                        <span class="text-gray-400 italic">ស្តុក: ${p.stock || 0}</span>
                     </div>
                     <button onclick="window.addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full ${p.stock <= 0 ? 'bg-gray-300' : 'bg-blue-600'} text-white py-1.5 rounded-lg text-[9px] font-bold transition-all active:scale-90">បន្ថែម</button>
                 </div>`).join('');
