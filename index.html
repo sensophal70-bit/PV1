@@ -97,10 +97,11 @@
         tg.expand();
         const user = tg.initDataUnsafe?.user;
         const customerName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : "ភ្ញៀវទូទៅ";
+        const telegramId = user?.id || null;
 
         document.getElementById('user-display').innerText = `សួស្តី, ${customerName}`;
         document.getElementById('acc-name').innerText = customerName;
-        document.getElementById('acc-id').innerText = `ID: ${user?.id || 'N/A'}`;
+        document.getElementById('acc-id').innerText = `ID: ${telegramId || 'N/A'}`;
         if(user?.photo_url) document.getElementById('acc-photo').src = user.photo_url;
 
         if (navigator.geolocation) {
@@ -109,7 +110,7 @@
             });
         }
 
-        // --- CART LOGIC ---
+        // --- UI LOGIC ---
         window.updateCartUI = () => {
             const count = cart.reduce((s, i) => s + Number(i.qty), 0);
             const total = cart.reduce((s, i) => s + (Number(i.qty) * Number(i.price)), 0);
@@ -168,7 +169,7 @@
             }
         };
 
-        // --- CHECKOUT & STOCK DEDUCTION ---
+        // --- CHECKOUT WITH CUSTOMER LINK ---
         window.handleCheckout = async () => {
             if (cart.length === 0) return alert("សូមរើសទំនិញ!");
             const btn = document.getElementById('btn-checkout');
@@ -176,7 +177,7 @@
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
 
             try {
-                // 1. កាត់ស្តុកចេញពី Firebase
+                // 1. Update Stock
                 const updatePromises = cart.map(async (item) => {
                     const productRef = doc(db, "products", item.id);
                     const productSnap = await getDoc(productRef);
@@ -187,25 +188,38 @@
                 });
                 await Promise.all(updatePromises);
 
-                // 2. រក្សាទុក Order
+                // 2. Save Order
                 const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
                 await addDoc(collection(db, "orders"), {
                     customer_name: customerName,
+                    customer_id: telegramId,
                     items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
                     total_amount: `$${total.toFixed(2)}`,
                     location: currentLoc,
                     createdAt: serverTimestamp()
                 });
 
-                // 3. ផ្ញើ Telegram
-                let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: ${currentLoc}\n--------------------------\n`;
+                // 3. Prepare Message with Link Account
+                // បង្កើត Link សម្រាប់ចុចទៅ Account អតិថិជន
+                let userLink = telegramId ? `[${customerName}](tg://user?id=${telegramId})` : `*${customerName}*`;
+
+                let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n`;
+                msg += `👤 អតិថិជន: ${userLink}\n`;
+                msg += `📍 ទីតាំង: [ចុចមើលទីតាំង](${currentLoc})\n`;
+                msg += `--------------------------\n`;
                 cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
-                msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
+                msg += `--------------------------\n`;
+                msg += `💰 *សរុប: $${total.toFixed(2)}*`;
 
                 await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "7453536903", text: msg, parse_mode: "Markdown" })
+                    body: JSON.stringify({ 
+                        chat_id: "7453536903", 
+                        text: msg, 
+                        parse_mode: "Markdown",
+                        disable_web_page_preview: true
+                    })
                 });
 
                 alert("✅ បញ្ជាទិញជោគជ័យ!");
@@ -215,7 +229,7 @@
             btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
         };
 
-        // --- UI HELPERS ---
+        // --- HELPERS ---
         window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
         window.toggleAccountModal = () => { document.getElementById('account-modal').classList.toggle('active'); document.getElementById('account-overlay').classList.toggle('hidden'); };
         
