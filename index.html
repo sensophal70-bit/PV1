@@ -309,6 +309,36 @@ window.removeFromCart = (id) => {
 };
 
 
+        // 5. រក្សាទុកក្នុង Firebase Collection "orders"
+        await addDoc(collection(db, "orders"), {
+            customer_name: customerName,
+            telegram_id: telegramId,
+            items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+            total_amount: `$${total.toFixed(2)}`,
+            createdAt: serverTimestamp()
+        });
+
+        alert("✅ ការបញ្ជាទិញទទួលបានជោគជ័យ!");
+        cart = []; 
+        window.updateCartUI(); 
+        window.closeModals(); 
+        window.init(); // Refresh ស្តុកថ្មី
+    } catch (e) { 
+        console.error(e);
+        alert("❌ មានបញ្ហាអ្វីមួយ! សូមព្យាយាមម្តងទៀត។"); 
+    }
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
+};
+
+// កុំភ្លេចបន្ថែមមុខងារលុបទំនិញនេះផងបង
+window.removeFromCart = (id) => {
+    cart = cart.filter(x => x.id !== id);
+    window.updateCartUI();
+    tg.HapticFeedback.impactOccurred('medium');
+};
+
+
         // --- FILTER & RENDER ---
         window.filterByCategory = (cat, event) => {
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
