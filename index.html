@@ -245,45 +245,70 @@
 
         // --- CHECKOUT ---
         window.handleCheckout = async () => {
-            if (cart.length === 0) return alert("សូមរើសទំនិញ!");
-            const btn = document.getElementById('btn-checkout');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
+    if (cart.length === 0) return alert("សូមរើសទំនិញ!");
+    const btn = document.getElementById('btn-checkout');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> កំពុងបញ្ជូន...`;
 
+    try {
+        const now = new Date();
+        const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
+        
+        // --- ផ្នែក Update Stock (ដាក់ក្នុង try-catch តូចមួយដើម្បីកុំឱ្យវាគាំងកូដទាំងមូល) ---
+        for(const item of cart) {
             try {
-                const now = new Date();
-                const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-                
-                for(const item of cart) {
-                    const ref = doc(db, "products", item.id);
-                    const snap = await getDoc(ref);
-                    if (snap.exists()) await updateDoc(ref, { stock: Math.max(0, snap.data().stock - item.qty) });
+                const ref = doc(db, "products", item.id);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const newStock = Math.max(0, (snap.data().stock || 0) - item.qty);
+                    await updateDoc(ref, { stock: newStock });
                 }
+            } catch (stockErr) {
+                console.warn("មិនអាច Update Stock សម្រាប់ទំនិញ ID: " + item.id, stockErr);
+            }
+        }
 
-                await addDoc(collection(db, "orders"), {
-                    customer_name: customerName,
-                    telegram_id: telegramId,
-                    items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-                    total_amount: `$${total.toFixed(2)}`,
-                    createdAt: serverTimestamp()
-                });
+        // --- ផ្នែករក្សាទុក Order ទៅ Firebase ---
+        await addDoc(collection(db, "orders"), {
+            customer_name: customerName,
+            telegram_id: telegramId,
+            items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+            total_amount: `$${total.toFixed(2)}`,
+            createdAt: serverTimestamp()
+        });
 
-                let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n📅 ${now.toLocaleString('km-KH')}\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n--------------------------\n`;
-                cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
-                msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
+        // --- ផ្នែកផ្ញើទៅ Telegram (Bot) ---
+        let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n--------------------------\n`;
+        cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
+        msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
 
-                await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "7453536903", text: msg, parse_mode: "Markdown" })
-                });
+        const tgRes = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: "7453536903", text: msg, parse_mode: "Markdown" })
+        });
 
-                alert("✅ បញ្ជាទិញជោគជ័យ!");
-                cart = []; window.updateCartUI(); window.closeModals(); window.init();
-            } catch (e) { alert("❌ បញ្ហាការតភ្ជាប់!"); }
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
-        };
+        const tgData = await tgRes.json();
+        
+        if (tgData.ok) {
+            alert("✅ បញ្ជាទិញជោគជ័យ និងបានផ្ញើទៅ Telegram!");
+            cart = []; 
+            window.updateCartUI(); 
+            window.closeModals(); 
+            window.init(); // ទាញទិន្នន័យថ្មី
+        } else {
+            alert("❌ បញ្ជូនទៅ Telegram មិនរួច៖ " + tgData.description);
+        }
+
+    } catch (e) { 
+        console.error("Checkout Error: ", e);
+        alert("❌ មានបញ្ហាបច្ចេកទេស៖ " + e.message); 
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
+    }
+};
+
 
         window.filterByCategory = (cat, event) => {
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
