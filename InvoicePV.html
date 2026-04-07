@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Admin - Roththa Shop</title>
+    <title>Invoice System Pro - Roththa Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
@@ -12,36 +12,43 @@
         body { font-family: 'Hanuman', serif; background-color: #f1f5f9; }
         .table-row:hover { background-color: #f8fafc; cursor: pointer; }
         .modal-active { display: flex !important; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 pb-20">
 
-    <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm">
+    <div class="max-w-7xl mx-auto no-print">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
             <div>
-                <h1 class="text-2xl font-bold text-blue-900 uppercase italic">គ្រប់គ្រងវិក្កយបត្រ</h1>
-                <p id="status-text" class="text-[10px] text-gray-400 font-bold uppercase">ស្ថានភាព៖ កំពុងភ្ជាប់ទៅកាន់ Firebase...</p>
+                <h1 class="text-2xl font-bold text-blue-900 uppercase italic tracking-tighter">ប្រព័ន្ធគ្រប់គ្រងវិក្កយបត្រ</h1>
+                <p id="status-text" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">ស្ថានភាព៖ កំពុងភ្ជាប់ទៅកាន់ Firebase...</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.exportToExcel()" class="bg-green-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-green-700 transition-all">
-                    <i class="fas fa-file-excel mr-2"></i> EXCEL
+                <button onclick="window.exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl text-xs font-bold transition-all shadow-lg">
+                    <i class="fas fa-file-excel mr-2"></i> EXCEL (លម្អិត)
+                </button>
+                <button onclick="window.location.reload()" class="bg-gray-100 text-gray-600 px-6 py-3 rounded-2xl text-xs font-bold shadow-sm">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <input type="text" id="f-text" oninput="window.runFilter()" placeholder="ស្វែងរកឈ្មោះ/លេខវិក្កយបត្រ..." class="w-full px-4 py-3 bg-white rounded-2xl border-none shadow-sm text-xs outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="date" id="f-date" onchange="window.runFilter()" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
-            <input type="number" id="f-min" oninput="window.runFilter()" placeholder="តម្លៃទាបបំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
-            <input type="number" id="f-max" oninput="window.runFilter()" placeholder="តម្លៃខ្ពស់បំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="f-text" oninput="window.runFilter()" placeholder="ស្វែងរកឈ្មោះ/លេខវិក្កយបត្រ..." class="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border-none shadow-sm text-xs outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <input type="date" id="f-date" onchange="window.runFilter()" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none focus:ring-2 focus:ring-blue-500 text-gray-500">
+            <input type="number" id="f-min" oninput="window.runFilter()" placeholder="តម្លៃទាបបំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="f-max" oninput="window.runFilter()" placeholder="តម្លៃខ្ពស់បំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-blue-900 text-white text-[11px] uppercase italic">
+                    <thead class="bg-blue-900 text-white text-[11px] uppercase italic tracking-wider">
                         <tr>
-                            <th class="p-5 text-center"><input type="checkbox" id="check-all" onchange="window.selectAll(this)"></th>
+                            <th class="p-5 text-center"><input type="checkbox" id="check-all" onchange="window.selectAll(this)" class="w-4 h-4 cursor-pointer"></th>
                             <th class="p-5">ល.រ</th>
                             <th class="p-5">លេខវិក្កយបត្រ</th>
                             <th class="p-5">កាលបរិច្ឆេទ</th>
@@ -59,16 +66,16 @@
 
     <div id="detail-modal" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+            <div class="bg-blue-900 p-6 text-white flex justify-between items-center no-print">
                 <h2 class="font-bold italic uppercase text-xs tracking-widest">ព័ត៌មានវិក្កយបត្រលម្អិត</h2>
                 <button onclick="window.closeModal()" class="text-2xl hover:text-yellow-400">&times;</button>
             </div>
             
-            <div class="p-8 overflow-y-auto flex-grow" id="print-area">
+            <div class="p-10 overflow-y-auto flex-grow" id="print-area">
                 <div class="flex justify-between items-start border-b-2 border-dashed pb-6 mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-blue-900 uppercase">Roththa Shop</h1>
-                        <p class="text-[10px] text-gray-400 italic">Construction & Technology</p>
+                        <p class="text-[10px] text-gray-400 italic">Technical Supplies & Construction</p>
                     </div>
                     <div class="text-right">
                         <p id="m-inv-no" class="font-bold text-blue-600 text-sm"></p>
@@ -76,36 +83,36 @@
                     </div>
                 </div>
 
-                <div class="mb-6 text-xs">
-                    <p class="text-gray-400 uppercase font-bold">អតិថិជន / Customer:</p>
+                <div class="mb-6">
+                    <p class="text-[9px] text-gray-400 uppercase font-bold mb-1">អតិថិជន / Customer:</p>
                     <p id="m-customer" class="font-bold text-gray-800 text-lg"></p>
                 </div>
 
-                <table class="w-full text-xs mb-8">
-                    <thead class="bg-gray-50 text-gray-400 uppercase italic">
-                        <tr class="border-b">
+                <table class="w-full text-[11px] mb-8">
+                    <thead class="bg-gray-50 text-gray-400 uppercase italic border-b">
+                        <tr>
                             <th class="py-3 px-2 text-left">ឈ្មោះទំនិញ</th>
                             <th class="py-3 px-2 text-center">ចំនួន</th>
                             <th class="py-3 px-2 text-right">តម្លៃរាយ</th>
                             <th class="py-3 px-2 text-right">សរុប</th>
                         </tr>
                     </thead>
-                    <tbody id="m-items-body" class="divide-y divide-gray-100"></tbody>
+                    <tbody id="m-items-body" class="divide-y divide-gray-100 text-gray-700"></tbody>
                 </table>
 
-                <div class="flex justify-end pt-4 border-t-2 border-blue-900">
-                    <div class="w-full md:w-1/2 flex justify-between items-center p-4 bg-blue-50 rounded-2xl">
-                        <span class="font-bold text-blue-900 uppercase text-[10px]">តម្លៃសរុបរួម:</span>
+                <div class="flex justify-end pt-6 border-t-2 border-blue-900">
+                    <div class="w-full md:w-1/2 flex justify-between items-center p-5 bg-blue-50 rounded-2xl shadow-inner">
+                        <span class="font-bold text-blue-900 uppercase text-[10px] tracking-widest">តម្លៃសរុបរួម:</span>
                         <span id="m-total" class="text-2xl font-bold text-red-600"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="p-6 bg-gray-50 border-t flex gap-3">
-                <button onclick="window.print()" class="flex-grow bg-blue-600 text-white py-4 rounded-2xl font-bold">
-                    <i class="fas fa-print mr-2"></i> បោះពុម្ព (Print)
+            <div class="p-6 bg-gray-50 border-t flex gap-3 no-print">
+                <button onclick="window.print()" class="flex-grow bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">
+                    <i class="fas fa-print mr-2"></i> បោះពុម្ពវិក្កយបត្រ
                 </button>
-                <button onclick="window.closeModal()" class="px-8 bg-gray-200 text-gray-600 py-4 rounded-2xl font-bold">បិទ</button>
+                <button onclick="window.closeModal()" class="px-8 bg-gray-200 text-gray-600 py-4 rounded-2xl font-bold hover:bg-gray-300 transition-all">បិទ</button>
             </div>
         </div>
     </div>
@@ -114,7 +121,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // *** ពិនិត្យមើល Config នេះឱ្យច្បាស់ បើនៅតែមិនដើរ សូមបងប្តូរយកពី index.html មកដាក់វិញ ***
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
             authDomain: "roththa-shop.firebaseapp.com",
@@ -128,18 +134,18 @@
         const db = getFirestore(app);
         let masterData = [];
 
+        // 1. Load Data
         async function loadData() {
             const tableBody = document.getElementById('main-table-body');
             const statusText = document.getElementById('status-text');
 
             try {
-                // ១. ទាញទិន្នន័យពី Collection "orders" (សាកល្បងដក orderBy ចេញសិនដើម្បីតេស្ត)
                 const q = query(collection(db, "orders"));
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="p-20 text-center text-red-400 italic">មិនមានទិន្នន័យក្នុង Firebase ទេ!</td></tr>';
-                    statusText.innerText = "ស្ថានភាព៖ មិនមានទិន្នន័យ";
+                    tableBody.innerHTML = '<tr><td colspan="6" class="p-20 text-center text-red-400 italic font-bold text-sm">មិនទាន់មានទិន្នន័យក្នុងប្រព័ន្ធទេ!</td></tr>';
+                    statusText.innerText = "ស្ថានភាព៖ គ្មានទិន្នន័យ";
                     return;
                 }
 
@@ -149,7 +155,7 @@
                     return {
                         id: d.id,
                         invNo: "INV-" + d.id.substring(0, 8).toUpperCase(),
-                        customer: data.customer_name || "មិនស្គាល់ឈ្មោះ",
+                        customer: data.customer_name || "Unknown",
                         date: date ? date.toLocaleString('km-KH') : "N/A",
                         rawDate: date ? date.toISOString().split('T')[0] : "",
                         amount: data.total_amount || "$0.00",
@@ -158,22 +164,21 @@
                     };
                 });
 
-                statusText.innerText = `ស្ថានភាព៖ ទាញបាន ${masterData.length} វិក្កយបត្រ`;
+                statusText.innerText = `ស្ថានភាព៖ ភ្ជាប់បានជោគជ័យ (${masterData.length} វិក្កយបត្រ)`;
                 render(masterData);
 
-            } catch (error) {
-                console.error("Firebase Error:", error);
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-red-500 font-bold">កំហុស៖ ${error.message}</td></tr>`;
-                statusText.innerText = "ស្ថានភាព៖ កំហុសការភ្ជាប់";
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-red-500 font-bold">Error: ${err.message}</td></tr>`;
             }
         }
 
         function render(list) {
             const body = document.getElementById('main-table-body');
             body.innerHTML = list.map((inv, i) => `
-                <tr class="table-row border-b border-gray-50" onclick="window.showDetails('${inv.id}')">
+                <tr class="table-row border-b border-gray-50 transition-all" onclick="window.showDetails('${inv.id}')">
                     <td class="p-5 text-center" onclick="event.stopPropagation()">
-                        <input type="checkbox" class="row-checkbox" data-id="${inv.id}">
+                        <input type="checkbox" class="row-checkbox w-4 h-4 cursor-pointer" data-id="${inv.id}">
                     </td>
                     <td class="p-5 text-gray-400 font-bold">${i + 1}</td>
                     <td class="p-5 font-mono font-bold text-blue-600">${inv.invNo}</td>
@@ -184,7 +189,7 @@
             `).join('');
         }
 
-        // --- Filter Search ---
+        // 2. Search Logic
         window.runFilter = () => {
             const txt = document.getElementById('f-text').value.toLowerCase();
             const date = document.getElementById('f-date').value;
@@ -192,28 +197,30 @@
             const max = parseFloat(document.getElementById('f-max').value) || Infinity;
 
             const res = masterData.filter(inv => {
-                const mTxt = inv.customer.toLowerCase().includes(txt) || inv.invNo.toLowerCase().includes(txt);
-                const mDate = !date || inv.rawDate === date;
-                const mPrice = inv.numAmount >= min && inv.numAmount <= max;
-                return mTxt && mDate && mPrice;
+                const matchTxt = inv.customer.toLowerCase().includes(txt) || inv.invNo.toLowerCase().includes(txt);
+                const matchDate = !date || inv.rawDate === date;
+                const matchPrice = inv.numAmount >= min && inv.numAmount <= max;
+                return matchTxt && matchDate && matchPrice;
             });
             render(res);
         }
 
-        // --- Details Modal ---
+        // 3. Details Modal
         window.showDetails = (id) => {
             const inv = masterData.find(i => i.id === id);
+            if (!inv) return;
+
             document.getElementById('m-inv-no').innerText = inv.invNo;
             document.getElementById('m-date').innerText = inv.date;
             document.getElementById('m-customer').innerText = inv.customer;
             document.getElementById('m-total').innerText = inv.amount;
 
             document.getElementById('m-items-body').innerHTML = inv.items.map(item => `
-                <tr>
+                <tr class="hover:bg-gray-50 transition-colors">
                     <td class="py-4 px-2 font-bold text-gray-700">${item.name}</td>
-                    <td class="py-4 px-2 text-center">${item.qty}</td>
+                    <td class="py-4 px-2 text-center font-bold text-blue-600">${item.qty}</td>
                     <td class="py-4 px-2 text-right">$${Number(item.price).toFixed(2)}</td>
-                    <td class="py-4 px-2 text-right font-bold">$${(item.qty * item.price).toFixed(2)}</td>
+                    <td class="py-4 px-2 text-right font-bold text-gray-800">$${(item.qty * item.price).toFixed(2)}</td>
                 </tr>
             `).join('');
 
@@ -222,16 +229,41 @@
 
         window.closeModal = () => document.getElementById('detail-modal').classList.remove('modal-active');
 
-        // --- Excel & Select ---
-        window.selectAll = (src) => document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = src.checked);
-
+        // 4. Excel Export (Detailed Version)
         window.exportToExcel = () => {
             const checks = Array.from(document.querySelectorAll('.row-checkbox:checked'));
-            let data = checks.length > 0 ? masterData.filter(i => checks.map(c => c.dataset.id).includes(i.id)) : masterData;
-            const ws = XLSX.utils.json_to_sheet(data.map(i => ({ "លេខ": i.invNo, "អតិថិជន": i.customer, "ថ្ងៃ": i.date, "សរុប": i.amount })));
+            let selectedData = checks.length > 0 
+                ? masterData.filter(i => checks.map(c => c.dataset.id).includes(i.id)) 
+                : masterData;
+
+            if (selectedData.length === 0) return alert("គ្មានទិន្នន័យសម្រាប់ Export!");
+
+            let rows = [];
+            selectedData.forEach(inv => {
+                inv.items.forEach((item, index) => {
+                    rows.push({
+                        "Invoice No": inv.invNo,
+                        "Date": inv.date,
+                        "Customer Name": inv.customer,
+                        "Product Name": item.name,
+                        "Quantity": item.qty,
+                        "Price ($)": Number(item.price).toFixed(2),
+                        "Amount ($)": (item.qty * item.price).toFixed(2),
+                        "Total Bill": index === 0 ? inv.amount : "" 
+                    });
+                });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [{wch:15}, {wch:20}, {wch:20}, {wch:25}, {wch:10}, {wch:10}, {wch:15}, {wch:15}];
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Report");
-            XLSX.writeFile(wb, `Roththa_Report_${Date.now()}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Sales Report");
+            XLSX.writeFile(wb, `Roththa_Shop_Detailed_Report_${Date.now()}.xlsx`);
+        }
+
+        // 5. Select All
+        window.selectAll = (src) => {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = src.checked);
         }
 
         window.onload = loadData;
