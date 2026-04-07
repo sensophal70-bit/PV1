@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Manager Pro - Roththa Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap');
+        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; }
+        .table-row:hover { background-color: #f8fafc; cursor: pointer; }
+        .modal-active { display: flex !important; }
+    </style>
+</head>
+<body class="p-4 md:p-10 pb-20">
+
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-900 uppercase italic">ប្រព័ន្ធគ្រប់គ្រងវិក្កយបត្រ</h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Roththa Shop - Advanced Admin</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">
+                    <i class="fas fa-file-excel mr-2"></i> EXCEL
+                </button>
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">
+                    <i class="fas fa-print mr-2"></i> PRINT
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="relative md:col-span-1">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="f-text" oninput="window.runFilter()" placeholder="ស្វែងរកឈ្មោះ/លេខវិក្កយបត្រ..." class="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border-none shadow-sm text-xs outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <input type="date" id="f-date" onchange="window.runFilter()" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
+            <input type="number" id="f-min" oninput="window.runFilter()" placeholder="តម្លៃទាបបំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
+            <input type="number" id="f-max" oninput="window.runFilter()" placeholder="តម្លៃខ្ពស់បំផុត $" class="bg-white rounded-2xl border-none shadow-sm p-3 text-xs outline-none">
+        </div>
+
+        <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-blue-900 text-white text-[11px] uppercase italic">
+                        <tr>
+                            <th class="p-5 text-center"><input type="checkbox" id="check-all" onchange="window.selectAll(this)"></th>
+                            <th class="p-5">ល.រ</th>
+                            <th class="p-5">លេខវិក្កយបត្រ</th>
+                            <th class="p-5">កាលបរិច្ឆេទ</th>
+                            <th class="p-5">អតិថិជន</th>
+                            <th class="p-5 text-right">តម្លៃសរុប</th>
+                        </tr>
+                    </thead>
+                    <tbody id="main-table-body" class="text-[12px] text-gray-600 divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+                <h2 class="font-bold italic uppercase text-xs tracking-widest">ព័ត៌មានវិក្កយបត្រលម្អិត</h2>
+                <button onclick="window.closeModal()" class="text-2xl hover:text-yellow-400">&times;</button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto flex-grow" id="print-area">
+                <div class="flex justify-between items-start border-b-2 border-dashed pb-6 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-blue-900">ROTHTHA SHOP</h1>
+                        <p class="text-[10px] text-gray-400 italic">Technical Supplies & Construction</p>
+                    </div>
+                    <div class="text-right">
+                        <p id="m-inv-no" class="font-bold text-blue-600 text-sm"></p>
+                        <p id="m-date" class="text-[10px] text-gray-400 mt-1"></p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">អតិថិជន / Customer:</p>
+                    <p id="m-customer" class="font-bold text-gray-800 text-lg"></p>
+                </div>
+
+                <table class="w-full text-xs mb-8">
+                    <thead class="bg-gray-50 text-gray-400 uppercase italic">
+                        <tr>
+                            <th class="py-3 px-2 text-left">ឈ្មោះទំនិញ</th>
+                            <th class="py-3 px-2 text-center">ចំនួន</th>
+                            <th class="py-3 px-2 text-right">តម្លៃរាយ</th>
+                            <th class="py-3 px-2 text-right">សរុប</th>
+                        </tr>
+                    </thead>
+                    <tbody id="m-items-body" class="divide-y divide-gray-100"></tbody>
+                </table>
+
+                <div class="flex justify-end pt-4 border-t-2 border-blue-900">
+                    <div class="w-full md:w-1/2 flex justify-between items-center p-4 bg-blue-50 rounded-2xl">
+                        <span class="font-bold text-blue-900 uppercase text-[10px]">តម្លៃសរុបរួម:</span>
+                        <span id="m-total" class="text-2xl font-bold text-red-600"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-50 border-t flex gap-3">
+                <button onclick="window.printModal()" class="flex-grow bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">
+                    <i class="fas fa-print mr-2"></i> បោះពុម្ពវិក្កយបត្រ (Print)
+                </button>
+                <button onclick="window.closeModal()" class="px-8 bg-gray-200 text-gray-600 py-4 rounded-2xl font-bold">បិទ</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
+            authDomain: "roththa-shop.firebaseapp.com",
+            projectId: "roththa-shop",
+            storageBucket: "roththa-shop.firebasestorage.app",
+            messagingSenderId: "570621300574",
+            appId: "1:570621300574:web:5448479ab7727038e9c402"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let masterData = [];
+
+        // 1. Fetch Data
+        async function init() {
+            const snap = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
+            masterData = snap.docs.map((d, index) => ({
+                id: d.id,
+                invNo: "INV-" + d.id.substring(0, 8).toUpperCase(),
+                customer: d.data().customer_name,
+                date: d.data().createdAt?.toDate().toLocaleString('km-KH'),
+                rawDate: d.data().createdAt?.toDate().toISOString().split('T')[0],
+                amount: d.data().total_amount,
+                numAmount: parseFloat(d.data().total_amount?.replace('$', '') || 0),
+                items: d.data().items || []
+            }));
+            render(masterData);
+        }
+
+        function render(list) {
+            const body = document.getElementById('main-table-body');
+            body.innerHTML = list.map((inv, i) => `
+                <tr class="table-row border-b border-gray-50" onclick="window.showDetails('${inv.id}')">
+                    <td class="p-5 text-center" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="row-checkbox" data-id="${inv.id}">
+                    </td>
+                    <td class="p-5 text-gray-400 font-bold">${i + 1}</td>
+                    <td class="p-5 font-mono font-bold text-blue-600">${inv.invNo}</td>
+                    <td class="p-5">${inv.date}</td>
+                    <td class="p-5 font-bold text-gray-800">${inv.customer}</td>
+                    <td class="p-5 text-right font-bold text-red-600 text-lg">${inv.amount}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 2. Search Engine
+        window.runFilter = () => {
+            const txt = document.getElementById('f-text').value.toLowerCase();
+            const date = document.getElementById('f-date').value;
+            const min = parseFloat(document.getElementById('f-min').value) || 0;
+            const max = parseFloat(document.getElementById('f-max').value) || Infinity;
+
+            const res = masterData.filter(inv => {
+                const mTxt = inv.customer.toLowerCase().includes(txt) || inv.invNo.toLowerCase().includes(txt);
+                const mDate = !date || inv.rawDate === date;
+                const mPrice = inv.numAmount >= min && inv.numAmount <= max;
+                return mTxt && mDate && mPrice;
+            });
+            render(res);
+        }
+
+        // 3. Show Modal Details
+        window.showDetails = (id) => {
+            const inv = masterData.find(i => i.id === id);
+            document.getElementById('m-inv-no').innerText = inv.invNo;
+            document.getElementById('m-date').innerText = inv.date;
+            document.getElementById('m-customer').innerText = inv.customer;
+            document.getElementById('m-total').innerText = inv.amount;
+
+            document.getElementById('m-items-body').innerHTML = inv.items.map(item => `
+                <tr>
+                    <td class="py-4 px-2 font-bold text-gray-700">${item.name}</td>
+                    <td class="py-4 px-2 text-center">${item.qty}</td>
+                    <td class="py-4 px-2 text-right">$${Number(item.price).toFixed(2)}</td>
+                    <td class="py-4 px-2 text-right font-bold">$${(item.qty * item.price).toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('detail-modal').classList.add('modal-active');
+        }
+
+        window.closeModal = () => document.getElementById('detail-modal').classList.remove('modal-active');
+
+        // 4. Export & Select
+        window.selectAll = (src) => document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = src.checked);
+
+        window.exportToExcel = () => {
+            const checks = Array.from(document.querySelectorAll('.row-checkbox:checked'));
+            let data = checks.length > 0 ? masterData.filter(i => checks.map(c => c.dataset.id).includes(i.id)) : masterData;
+            
+            const ws = XLSX.utils.json_to_sheet(data.map(i => ({ "លេខ": i.invNo, "អតិថិជន": i.customer, "ថ្ងៃ": i.date, "សរុប": i.amount })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Invoices");
+            XLSX.writeFile(wb, `Report_${Date.now()}.xlsx`);
+        }
+
+        window.printModal = () => window.print();
+
+        init();
+    </script>
+</body>
+</html>
