@@ -254,21 +254,19 @@
         const now = new Date();
         const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
         
-        // --- ផ្នែក Update Stock (ដាក់ក្នុង try-catch តូចមួយដើម្បីកុំឱ្យវាគាំងកូដទាំងមូល) ---
+        // 1. ព្យាយាម Update Stock (បើ Error ក៏ឱ្យវាបន្តទៅមុខទៀត)
         for(const item of cart) {
             try {
                 const ref = doc(db, "products", item.id);
                 const snap = await getDoc(ref);
                 if (snap.exists()) {
-                    const newStock = Math.max(0, (snap.data().stock || 0) - item.qty);
-                    await updateDoc(ref, { stock: newStock });
+                    const currentStock = snap.data().stock || 0;
+                    await updateDoc(ref, { stock: Math.max(0, currentStock - item.qty) });
                 }
-            } catch (stockErr) {
-                console.warn("មិនអាច Update Stock សម្រាប់ទំនិញ ID: " + item.id, stockErr);
-            }
+            } catch (err) { console.warn("Stock Update Failed for: " + item.id); }
         }
 
-        // --- ផ្នែករក្សាទុក Order ទៅ Firebase ---
+        // 2. រក្សាទុក Order ទៅ Firebase
         await addDoc(collection(db, "orders"), {
             customer_name: customerName,
             telegram_id: telegramId,
@@ -277,32 +275,38 @@
             createdAt: serverTimestamp()
         });
 
-        // --- ផ្នែកផ្ញើទៅ Telegram (Bot) ---
+        // 3. ផ្ញើសារទៅ Telegram (ផ្នែកនេះសំខាន់បំផុត)
         let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n--------------------------\n`;
         cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
         msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
 
-        const tgRes = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
+        const response = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: "7453536903", text: msg, parse_mode: "Markdown" })
+            body: JSON.stringify({ 
+                chat_id: "7453536903", 
+                text: msg, 
+                parse_mode: "Markdown",
+                disable_web_page_preview: true 
+            })
         });
 
-        const tgData = await tgRes.json();
-        
-        if (tgData.ok) {
-            alert("✅ បញ្ជាទិញជោគជ័យ និងបានផ្ញើទៅ Telegram!");
+        const result = await response.json();
+
+        if (result.ok) {
+            alert("✅ ការបញ្ជាទិញទទួលបានជោគជ័យ!");
             cart = []; 
             window.updateCartUI(); 
             window.closeModals(); 
-            window.init(); // ទាញទិន្នន័យថ្មី
+            window.init(); 
         } else {
-            alert("❌ បញ្ជូនទៅ Telegram មិនរួច៖ " + tgData.description);
+            // បើ Telegram ផ្ញើមិនចេញ វានឹងប្រាប់មូលហេតុនៅទីនេះ
+            alert("❌ Telegram Error: " + result.description);
         }
 
     } catch (e) { 
         console.error("Checkout Error: ", e);
-        alert("❌ មានបញ្ហាបច្ចេកទេស៖ " + e.message); 
+        alert("❌ មានបញ្ហាការតភ្ជាប់ Firebase: " + e.message); 
     } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fab fa-telegram-plane text-lg text-yellow-400"></i> បញ្ជូនទៅ Telegram`;
