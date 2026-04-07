@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roththa Shop - Customer System v18.0</title>
+    <title>Roththa Shop - v18.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -30,20 +30,16 @@
                 <button onclick="window.toggleHistoryModal()" class="bg-yellow-500 text-blue-900 p-2 rounded-xl border border-white/30 text-[10px] font-bold shadow-md">
                     <i class="fas fa-history mr-1"></i> ប្រវត្តិ
                 </button>
-                <button class="bg-white/20 p-2 rounded-xl border border-white/30 text-[10px] font-bold">
-                    <i class="fas fa-user-circle mr-1"></i> គណនី
-                </button>
             </div>
         </div>
         <input type="text" id="search-box" onkeyup="window.filterProducts()" placeholder="ស្វែងរកផលិតផល..." class="w-full p-3 rounded-2xl border-none outline-none text-[11px] text-gray-800 shadow-inner">
     </div>
 
-    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20 shadow-sm">
-    </div>
+    <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20 shadow-sm"></div>
 
     <div class="px-3 mt-4">
         <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10 text-center">
-            <p class="col-span-3 text-[10px] text-gray-400 py-10">កំពុងទាញទិន្នន័យ...</p>
+            <p class="col-span-3 text-[10px] text-gray-400 py-10 italic">កំពុងទាញទិន្នន័យ...</p>
         </div>
     </div>
 
@@ -87,7 +83,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, getDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, getDoc, updateDoc, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
@@ -116,7 +112,7 @@
             });
         }
 
-        // --- ZOOM IMAGE LOGIC ---
+        // --- IMAGE ZOOM ---
         window.zoomImage = (url, name) => {
             const modal = document.getElementById('img-zoom-modal');
             document.getElementById('zoomed-img').src = url;
@@ -138,6 +134,7 @@
             document.getElementById('cart-count').innerText = count;
             document.getElementById('cart-total-bar').innerText = `$${total.toFixed(2)}`;
             document.getElementById('modal-total-price').innerText = `$${total.toFixed(2)}`;
+            
             document.getElementById('cart-items-list').innerHTML = cart.map(item => `
                 <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
                     <img src="${item.img || ''}" class="w-12 h-12 object-cover rounded-xl border bg-white">
@@ -145,10 +142,15 @@
                         <div class="font-bold text-[10px] line-clamp-1">${item.name}</div>
                         <div class="text-blue-600 font-bold text-[10px]">$${Number(item.price).toFixed(2)}</div>
                     </div>
-                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border">
-                        <button onclick="window.changeQty('${item.id}', -1)" class="w-7 h-7 text-gray-400 font-bold">-</button>
-                        <span class="w-8 text-center font-bold text-[11px]">${item.qty}</span>
-                        <button onclick="window.changeQty('${item.id}', 1)" class="w-7 h-7 text-blue-600 font-bold">+</button>
+                    <div class="flex items-center gap-1">
+                        <div class="flex items-center bg-white border rounded-xl overflow-hidden h-8">
+                            <button onclick="window.changeQty('${item.id}', -1)" class="px-2 text-gray-400 font-bold">-</button>
+                            <input type="number" value="${item.qty}" onchange="window.updateQtyManual('${item.id}', this.value)" class="w-10 text-center text-[11px] font-bold outline-none border-none">
+                            <button onclick="window.changeQty('${item.id}', 1)" class="px-2 text-blue-600 font-bold">+</button>
+                        </div>
+                        <button onclick="window.removeFromCart('${item.id}')" class="ml-1 w-8 h-8 text-red-500 bg-red-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-trash-alt text-[10px]"></i>
+                        </button>
                     </div>
                 </div>`).join('');
         };
@@ -164,18 +166,31 @@
 
         window.changeQty = (id, d) => {
             const i = cart.find(x => x.id === id);
+            const p = allProducts.find(x => x.id === id);
             if(i) {
+                if(d > 0 && i.qty >= p.stock) return alert("ស្តុកមានត្រឹមតែ " + p.stock);
                 i.qty = Math.max(0, Number(i.qty) + d);
                 if(i.qty === 0) cart = cart.filter(x => x.id !== id);
                 window.updateCartUI();
             }
         };
 
-        // --- HISTORY LOGIC (Fixed Index Problem) ---
+        window.updateQtyManual = (id, val) => {
+            const i = cart.find(x => x.id === id);
+            const p = allProducts.find(x => x.id === id);
+            let n = parseInt(val) || 0;
+            if(n > p.stock) { alert("ស្តុកមានត្រឹមតែ " + p.stock); n = p.stock; }
+            if(n <= 0) cart = cart.filter(x => x.id !== id); else i.qty = n;
+            window.updateCartUI();
+        };
+
+        window.removeFromCart = (id) => { cart = cart.filter(x => x.id !== id); window.updateCartUI(); };
+
+        // --- HISTORY LOGIC ---
         window.loadOrderHistory = async () => {
             const list = document.getElementById('history-items-list');
-            list.innerHTML = "<p class='text-center text-gray-400 text-[10px] py-10 italic'>កំពុងទាញទិន្នន័យ...</p>";
-            if(!telegramId) return list.innerHTML = "<p class='text-center text-red-400 py-10 font-bold'>រកមិនឃើញ Telegram ID</p>";
+            list.innerHTML = "<p class='text-center text-gray-400 py-10 italic'>កំពុងទាញទិន្នន័យ...</p>";
+            if(!telegramId) return list.innerHTML = "<p class='text-center text-red-400 py-10 font-bold'>រកមិនឃើញ ID</p>";
             
             try {
                 const qOrder = query(collection(db, "orders"), where("telegram_id", "==", telegramId));
@@ -188,7 +203,10 @@
                     const o = doc.data();
                     const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : 'ថ្មីៗនេះ';
                     return `
-                    <div class="bg-gray-50 p-3 rounded-2xl border mb-2 shadow-sm">
+                    <div class="bg-gray-50 p-3 rounded-2xl border mb-2 relative shadow-sm">
+                        <button onclick="window.deleteOrder('${doc.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 p-2">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
                         <div class="flex justify-between font-bold text-[9px] text-blue-700 border-b pb-1 mb-2 italic">
                             <span>ID: #${doc.id.substring(0,6).toUpperCase()}</span>
                             <span>${date}</span>
@@ -196,16 +214,25 @@
                         <div class="text-[9px] text-gray-600 space-y-1">
                             ${o.items.map(it => `<div>• ${it.name} x${it.qty}</div>`).join('')}
                         </div>
-                        <div class="flex justify-between mt-2 pt-2 border-t border-dashed text-red-600 font-bold">
-                            <span class="text-[9px] uppercase">សរុប</span>
+                        <div class="flex justify-between mt-2 pt-2 border-t border-dashed text-red-600 font-bold uppercase">
+                            <span class="text-[9px]">សរុប</span>
                             <span class="text-[10px]">${o.total_amount}</span>
                         </div>
                     </div>`;
                 }).join('');
-            } catch (e) { list.innerHTML = "<p class='text-center text-red-400 py-10'>Error loading history</p>"; }
+            } catch (e) { list.innerHTML = "<p class='text-center text-red-400 py-10 italic'>Error loading history</p>"; }
         };
 
-        // --- CHECKOUT (Fixed Telegram Error) ---
+        window.deleteOrder = async (orderId) => {
+            if (!confirm("តើបងពិតជាចង់លុបប្រវត្តិនេះមែនទេ?")) return;
+            try {
+                await deleteDoc(doc(db, "orders", orderId));
+                window.loadOrderHistory();
+                tg.HapticFeedback.notificationOccurred('success');
+            } catch (e) { alert("មិនអាចលុបបាន!"); }
+        };
+
+        // --- CHECKOUT ---
         window.handleCheckout = async () => {
             if (cart.length === 0) return alert("សូមរើសទំនិញ!");
             const btn = document.getElementById('btn-checkout');
@@ -214,8 +241,6 @@
 
             try {
                 const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
-                
-                // 1. Update Stock
                 for(const item of cart) {
                     try {
                         const ref = doc(db, "products", item.id);
@@ -224,7 +249,6 @@
                     } catch (e) {}
                 }
 
-                // 2. Save Order
                 await addDoc(collection(db, "orders"), {
                     customer_name: customerName,
                     telegram_id: telegramId,
@@ -233,19 +257,14 @@
                     createdAt: serverTimestamp()
                 });
 
-                // 3. Send Telegram (Plain Text to avoid Markdown Error)
-                let msg = `🏗 កុម្ម៉ង់ថ្មី Roththa Shop\n`;
-                msg += `👤 អតិថិជន: ${customerName}\n`;
-                msg += `📍 ទីតាំង: ${currentLoc}\n`;
-                msg += `--------------------------\n`;
+                let msg = `🏗 កុម្ម៉ង់ថ្មី Roththa Shop\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: ${currentLoc}\n--------------------------\n`;
                 cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
-                msg += `--------------------------\n`;
-                msg += `💰 សរុបរួម: $${total.toFixed(2)}`;
+                msg += `--------------------------\n💰 សរុបរួម: $${total.toFixed(2)}`;
 
                 const tgRes = await fetch(`https://api.telegram.org/bot8790246863:AAGhESD1muJVvaO9DhNxiuqoVmY8dIhEl8U/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "7453536903", text: msg }) // ដក parse_mode ចេញដើម្បីការពារ Error
+                    body: JSON.stringify({ chat_id: "7453536903", text: msg })
                 });
 
                 const tgData = await tgRes.json();
@@ -276,7 +295,7 @@
                 <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
                     <div onclick="window.zoomImage('${p.img}', '${p.name}')" class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50 relative active:scale-95 transition-transform">
                         <img src="${p.img || ''}" class="w-full h-full object-cover">
-                        ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[8px] font-bold uppercase">OUT STOCK</div>' : ''}
+                        ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[8px] font-bold">OUT STOCK</div>' : ''}
                     </div>
                     <h3 class="font-bold text-[9px] line-clamp-2 h-7 leading-tight mb-1 text-gray-700">${p.name}</h3>
                     <div class="flex justify-between w-full px-1 mb-2 text-[10px]">
@@ -307,7 +326,6 @@
                 list.innerHTML += `<button onclick="window.filterByCategory('${d.data().name}', event)" class="cat-btn whitespace-nowrap px-6 py-2 bg-white text-gray-500 rounded-full text-[10px] font-bold border shadow-sm">${d.data().name}</button>`;
             });
         }
-        
         window.init();
     </script>
 </body>
