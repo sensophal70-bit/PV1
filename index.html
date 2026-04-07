@@ -15,6 +15,8 @@
         .modal-up.active { transform: translateY(0); }
         .cat-btn.active { background-color: #1e40af !important; color: white !important; border-color: #1e40af !important; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        /* Style បន្ថែមសម្រាប់ Image Zoom */
+        #img-zoom-modal.active { display: flex; opacity: 1; }
     </style>
 </head>
 <body class="pb-32">
@@ -38,13 +40,18 @@
     </div>
 
     <div id="cat-list" class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-white border-b sticky top-[135px] z-20 shadow-sm">
-        <button onclick="window.filterByCategory('All', event)" class="cat-btn active whitespace-nowrap px-6 py-2 rounded-full text-[10px] font-bold border shadow-sm transition-all bg-white text-gray-500">ទាំងអស់</button>
-    </div>
+        </div>
 
     <div class="px-3 mt-4">
         <div id="product-grid" class="grid grid-cols-3 gap-2 pb-10 text-center">
             <p class="col-span-3 text-[10px] text-gray-400 py-10">កំពុងទាញទិន្នន័យ...</p>
         </div>
+    </div>
+
+    <div id="img-zoom-modal" onclick="this.classList.remove('active')" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center p-4 transition-all duration-300">
+        <img id="zoomed-img" src="" class="max-w-full max-h-[70vh] rounded-xl shadow-2xl object-contain">
+        <p id="zoomed-name" class="text-white mt-4 font-bold text-center text-sm"></p>
+        <button class="mt-6 px-6 py-2 bg-white/20 text-white rounded-full text-xs">ចុចកន្លែងណាក៏បានដើម្បីបិទ</button>
     </div>
 
     <div id="cart-bar" onclick="window.toggleCartModal()" class="fixed bottom-6 left-6 right-6 bg-blue-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center hidden z-40 border border-white/10 active:scale-95 transition-all">
@@ -59,7 +66,7 @@
 
     <div id="cart-modal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-50 modal-up p-6 shadow-2xl max-h-[90vh] flex flex-col">
         <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-center font-bold text-blue-900 mb-4 text-[11px] uppercase border-b pb-2 italic text-blue-800">កន្ត្រកទំនិញរបស់អ្នក</h2>
+        <h2 class="text-center font-bold text-blue-900 mb-4 text-[11px] uppercase border-b pb-2 italic">កន្ត្រកទំនិញរបស់អ្នក</h2>
         <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-3 no-scrollbar py-2"></div>
         <div class="mt-4 pt-4 border-t border-gray-100">
             <div class="flex justify-between items-center mb-6 px-2">
@@ -109,6 +116,15 @@
                 currentLoc = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
             });
         }
+
+        // --- NEW: ZOOM FUNCTION ---
+        window.zoomImage = (url, name) => {
+            const modal = document.getElementById('img-zoom-modal');
+            document.getElementById('zoomed-img').src = url;
+            document.getElementById('zoomed-name').innerText = name;
+            modal.classList.add('active');
+            tg.HapticFeedback.impactOccurred('medium');
+        };
 
         // --- UI & MODALS ---
         window.toggleCartModal = () => { document.getElementById('cart-modal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('hidden'); setTimeout(() => document.getElementById('overlay').classList.toggle('opacity-0'), 10); };
@@ -178,15 +194,16 @@
             window.updateCartUI();
         };
 
-        // --- HISTORY LOGIC ---
+        // --- HISTORY LOGIC (Corrected with Sort) ---
+                // --- HISTORY LOGIC ---
         window.loadOrderHistory = async () => {
             const list = document.getElementById('history-items-list');
             list.innerHTML = "<p class='text-center text-gray-400 text-[10px] py-10 italic'>កំពុងទាញទិន្នន័យ...</p>";
             if(!telegramId) return list.innerHTML = "<p class='text-center text-red-400 text-[10px] py-10'>មិនមាន Telegram ID</p>";
             
             try {
-                // ប្រសិនបើ Error ត្រង់នេះ បងត្រូវបង្កើត Index ក្នុង Firebase Console
-                const qOrder = query(collection(db, "orders"), where("telegram_id", "==", telegramId), orderBy("createdAt", "desc"));
+                // កែសម្រួល៖ ដក orderBy ចេញ ដើម្បីឱ្យដើរដោយមិនបាច់បង្កើត Index
+                const qOrder = query(collection(db, "orders"), where("telegram_id", "==", telegramId.toString()));
                 const snap = await getDocs(qOrder);
                 
                 if(snap.empty) {
@@ -194,7 +211,14 @@
                     return;
                 }
 
-                list.innerHTML = snap.docs.map(doc => {
+                // បន្ថែមការ Sort តាមរយៈ JavaScript (ពីថ្មីទៅចាស់)
+                const sortedDocs = snap.docs.sort((a, b) => {
+                    const timeA = a.data().createdAt?.seconds || 0;
+                    const timeB = b.data().createdAt?.seconds || 0;
+                    return timeB - timeA; 
+                });
+
+                list.innerHTML = sortedDocs.map(doc => {
                     const o = doc.data();
                     const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : 'ថ្មីៗនេះ';
                     return `
@@ -213,9 +237,11 @@
                     </div>`;
                 }).join('');
             } catch (e) {
-                list.innerHTML = "<p class='text-center text-red-400 text-[10px] py-10'>សូមបង្កើត Firebase Index ដើម្បីមើលប្រវត្តិ</p>";
+                console.error("History Error: ", e);
+                list.innerHTML = "<p class='text-center text-red-400 text-[10px] py-10'>បញ្ហាបច្ចេកទេស មិនអាចទាញទិន្នន័យបាន</p>";
             }
         };
+
 
         // --- CHECKOUT ---
         window.handleCheckout = async () => {
@@ -228,16 +254,12 @@
                 const now = new Date();
                 const total = cart.reduce((s, i) => s + (i.qty * i.price), 0);
                 
-                // 1. Update Stock
                 for(const item of cart) {
                     const ref = doc(db, "products", item.id);
                     const snap = await getDoc(ref);
-                    if (snap.exists()) {
-                        await updateDoc(ref, { stock: Math.max(0, snap.data().stock - item.qty) });
-                    }
+                    if (snap.exists()) await updateDoc(ref, { stock: Math.max(0, snap.data().stock - item.qty) });
                 }
 
-                // 2. Save to Firebase (បន្ថែម telegram_id ដើម្បីទាញ History)
                 await addDoc(collection(db, "orders"), {
                     customer_name: customerName,
                     telegram_id: telegramId,
@@ -246,7 +268,6 @@
                     createdAt: serverTimestamp()
                 });
 
-                // 3. Send Telegram
                 let msg = `🏗 *កុម្ម៉ង់ថ្មី Roththa Shop*\n📅 ${now.toLocaleString('km-KH')}\n👤 អតិថិជន: ${customerName}\n📍 ទីតាំង: [ចុចមើល](${currentLoc})\n--------------------------\n`;
                 cart.forEach(i => msg += `• ${i.name} (x${i.qty}) = $${(i.qty * i.price).toFixed(2)}\n`);
                 msg += `--------------------------\n💰 *សរុប: $${total.toFixed(2)}*`;
@@ -278,7 +299,7 @@
         function renderProducts(data) {
             document.getElementById('product-grid').innerHTML = data.map(p => `
                 <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-                    <div class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50 relative">
+                    <div onclick="window.zoomImage('${p.img}', '${p.name}')" class="w-full aspect-square mb-2 overflow-hidden rounded-lg bg-gray-50 relative active:scale-95 transition-transform">
                         <img src="${p.img || ''}" class="w-full h-full object-cover">
                         ${p.stock <= 0 ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[8px] font-bold">អស់ស្តុក</div>' : ''}
                     </div>
@@ -293,20 +314,21 @@
 
         window.init = async () => {
             try {
-                // សាកល្បងទាញយកជាមួយ orderBy
+                // ទាញយកទិន្នន័យ products ធម្មតាដើម្បីជៀសវាងបញ្ហា Index ក្នុង Firebase
                 const [cSnap, pSnap] = await Promise.all([
                     getDocs(collection(db, "categories")),
-                    getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")))
+                    getDocs(collection(db, "products")) 
                 ]);
+                
                 allProducts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                
+                // តម្រៀប products តាមថ្ងៃបង្កើត (ថ្មីទៅចាស់) ក្នុង JS ជំនួស Firebase Query
+                allProducts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
                 setupCategories(cSnap);
                 renderProducts(allProducts);
             } catch (e) {
-                console.log("Firebase Index Missing, loading simple query...");
-                // បើ Error (ខ្វះ Index) ឱ្យទាញយកបែបធម្មតា
-                const pSnapSimple = await getDocs(collection(db, "products"));
-                allProducts = pSnapSimple.docs.map(d => ({id: d.id, ...d.data()}));
-                renderProducts(allProducts);
+                console.error(e);
             }
         }
 
