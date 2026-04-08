@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Pro - Roththa Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Moul&display=swap');
+        body { font-family: 'Hanuman', serif; background-color: #f1f5f9; }
+        .khmer-moul { font-family: 'Moul', cursive; }
+        .active-filter { background-color: #1e3a8a !important; color: white !important; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8 pb-20">
+
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-900 p-8 rounded-[2.5rem] shadow-xl text-white text-center">
+                <p class="text-xs opacity-70 mb-2 uppercase font-bold">សមតុល្យសរុប</p>
+                <h2 id="total-balance" class="text-4xl font-bold font-mono">$0.00</h2>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border-b-8 border-green-500 text-center">
+                <p class="text-xs text-gray-400 mb-2 uppercase font-bold">ចំណូលសរុប (INCOME)</p>
+                <h2 id="total-income" class="text-4xl font-bold text-green-600 font-mono">$0.00</h2>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border-b-8 border-red-500 text-center">
+                <p class="text-xs text-gray-400 mb-2 uppercase font-bold">ចំណាយសរុប (EXPENSE)</p>
+                <h2 id="total-expense" class="text-4xl font-bold text-red-600 font-mono">$0.00</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-blue-900 pl-3">បញ្ចូលប្រតិបត្តិការ</h3>
+                <form id="finance-form" class="space-y-4">
+                    <select id="type" class="w-full p-4 bg-gray-50 rounded-2xl outline-none ring-1 ring-gray-100 font-bold">
+                        <option value="expense">ចំណាយ (-)</option>
+                        <option value="income">ចំណូលបន្ថែម (+)</option>
+                    </select>
+                    <input type="number" id="amount" step="0.01" required placeholder="0.00" class="w-full p-4 bg-gray-50 rounded-2xl outline-none ring-1 ring-gray-100 font-bold text-lg">
+                    <input type="text" id="note" required placeholder="ចំណាំ..." class="w-full p-4 bg-gray-50 rounded-2xl outline-none ring-1 ring-gray-100">
+                    <input type="date" id="date" required class="w-full p-4 bg-gray-50 rounded-2xl outline-none ring-1 ring-gray-100">
+                    <button type="submit" id="btn-save" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-blue-800 transition-all">រក្សាទុក</button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-lg font-bold text-gray-800">ប្រវត្តិលំហូរលុយបំបែកផ្នែក</h3>
+                    <div class="flex bg-gray-100 p-1 rounded-xl text-[10px] font-bold">
+                        <button onclick="window.setFilter('all')" id="btn-all" class="px-4 py-2 rounded-lg active-filter">ទាំងអស់</button>
+                        <button onclick="window.setFilter('day')" id="btn-day" class="px-4 py-2 rounded-lg">ថ្ងៃនេះ</button>
+                        <button onclick="window.setFilter('month')" id="btn-month" class="px-4 py-2 rounded-lg">ខែនេះ</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4 text-green-600 font-bold border-b pb-2 text-sm uppercase">
+                            <i class="fas fa-arrow-down"></i> ចំណូល (Income)
+                        </div>
+                        <div id="income-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                            <p class="text-center text-gray-300 py-10 italic">គ្មានចំណូល</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-4 text-red-600 font-bold border-b pb-2 text-sm uppercase">
+                            <i class="fas fa-arrow-up"></i> ចំណាយ (Expense)
+                        </div>
+                        <div id="expense-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                            <p class="text-center text-gray-300 py-10 italic">គ្មានចំណាយ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZowMF95RsoC3c3xkyFv4kMvjI",
+            authDomain: "roththa-shop.firebaseapp.com",
+            projectId: "roththa-shop",
+            storageBucket: "roththa-shop.firebasestorage.app",
+            messagingSenderId: "570621300574",
+            appId: "1:570621300574:web:5448479ab7727038e9c402"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allData = [];
+        let currentFilter = 'all';
+
+        // ១. មុខងារ Save (FIXED)
+        const financeForm = document.getElementById('finance-form');
+        financeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save');
+            const payload = {
+                type: document.getElementById('type').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                note: document.getElementById('note').value,
+                date: document.getElementById('date').value,
+                createdAt: serverTimestamp()
+            };
+
+            btn.disabled = true;
+            btn.innerText = "កំពុងរក្សាទុក...";
+
+            try {
+                await addDoc(collection(db, "finance"), payload);
+                alert("រក្សាទុកជោគជ័យ! ✅");
+                financeForm.reset();
+                document.getElementById('date').valueAsDate = new Date();
+            } catch (err) { alert("Error: " + err.message); }
+            finally { btn.disabled = false; btn.innerText = "រក្សាទុក"; }
+        };
+
+        // ២. មុខងារ Sync Data
+        function startSync() {
+            let sales = [], finance = [];
+            onSnapshot(collection(db, "orders"), (snap) => {
+                sales = snap.docs.map(doc => {
+                    const d = doc.data();
+                    const amt = parseFloat(String(d.total_amount).replace(/[$,]/g, '')) || 0;
+                    const dObj = d.createdAt?.toDate() || new Date();
+                    return { note: "លក់ចេញ: "+(d.customer_name || "អតិថិជន"), amount: amt, type: 'income', date: dObj.toLocaleDateString('en-CA'), time: dObj.getTime() };
+                });
+                merge(sales, finance);
+            });
+
+            onSnapshot(collection(db, "finance"), (snap) => {
+                finance = snap.docs.map(doc => {
+                    const d = doc.data();
+                    const dObj = d.createdAt?.toDate() || new Date(d.date);
+                    return { ...d, time: dObj.getTime() };
+                });
+                merge(sales, finance);
+            });
+        }
+
+        function merge(s, f) {
+            allData = [...s, ...f].sort((a, b) => b.time - a.time);
+            window.setFilter(currentFilter);
+        }
+
+        // ៣. Filter & Render (Split View)
+        window.setFilter = (mode) => {
+            currentFilter = mode;
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('en-CA');
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+
+            document.querySelectorAll('[id^="btn-"]').forEach(el => el.classList.remove('active-filter'));
+            document.getElementById('btn-' + mode).classList.add('active-filter');
+
+            const filtered = allData.filter(item => {
+                const itemDate = new Date(item.date);
+                if (mode === 'day') return item.date === todayStr;
+                if (mode === 'month') return itemDate.getMonth() === thisMonth && itemDate.getFullYear() === thisYear;
+                return true;
+            });
+
+            renderSplit(filtered);
+        };
+
+        function renderSplit(list) {
+            let inc = 0, exp = 0;
+            let incHtml = "", expHtml = "";
+
+            list.forEach(t => {
+                const card = `
+                    <div class="p-3 bg-gray-50 rounded-xl border-l-4 ${t.type === 'income' ? 'border-green-500' : 'border-red-500'}">
+                        <p class="font-bold text-gray-800 text-[11px]">${t.note}</p>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[9px] text-gray-400">${t.date}</span>
+                            <span class="font-bold font-mono text-xs ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                                ${t.type === 'income' ? '+' : '-'}$${t.amount.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>`;
+                
+                if(t.type === 'income') { inc += t.amount; incHtml += card; }
+                else { exp += t.amount; expHtml += card; }
+            });
+
+            document.getElementById('income-list').innerHTML = incHtml || "<p class='text-center text-gray-300 py-10 italic'>គ្មានចំណូល</p>";
+            document.getElementById('expense-list').innerHTML = expHtml || "<p class='text-center text-gray-300 py-10 italic'>គ្មានចំណាយ</p>";
+            
+            document.getElementById('total-income').innerText = `$${inc.toFixed(2)}`;
+            document.getElementById('total-expense').innerText = `$${exp.toFixed(2)}`;
+            document.getElementById('total-balance').innerText = `$${(inc - exp).toFixed(2)}`;
+        }
+
+        document.getElementById('date').valueAsDate = new Date();
+        startSync();
+    </script>
+</body>
+</html>
